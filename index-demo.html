@@ -856,8 +856,7 @@ font-weight:700;cursor:pointer;margin-top:8px}
 // Medo DEMO — JavaScript
 // يتصل بـ port 3001
 // ============================================
-const API = window.location.origin.includes('3001')
-  ? window.location.origin + '/api'
+const API = window.location.origin + '/api';  ? window.location.origin + '/api'
   : 'http://localhost:3001/api';
 
 let currentUser = null, authToken = null;
