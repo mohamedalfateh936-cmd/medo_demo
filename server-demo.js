@@ -1,6 +1,6 @@
 // ============================================
-// Medo app — DEMO SERVER (منفصل تماماً)
-// port 3001 • in-memory • بدون MongoDB
+// Medo app — DEMO SERVER
+// port dynamic (works on Render)
 // ============================================
 const express = require('express');
 const cors = require('cors');
@@ -11,16 +11,12 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
-// ============ قاعدة بيانات في الذاكرة ============
 const db = {
-  users: {},       // userId -> user
-  sessions: {},    // token -> userId
-  cards: {},       // userId -> [cards]
-  txs: {},         // userId -> [txs]
-  nextId: 1000
+  users: {}, sessions: {}, cards: {}, txs: {}, nextId: 1000
 };
 
 function generateToken() { return crypto.randomBytes(32).toString('hex'); }
@@ -78,7 +74,6 @@ app.post('/api/demo/login', (req, res) => {
   db.cards[userId] = [];
   db.txs[userId] = [];
 
-  // عمليات تجريبية
   const demoTxs = [
     { type: 'receive', currency: 'USD', amount: 500, status: 'completed', description: '💰 استلام من Upwork', reference: 'DEMO-REF-001', days: 1 },
     { type: 'out', currency: 'SDG', amount: 25000, status: 'completed', description: '🎮 شراء بطاقة PlayStation', reference: 'DEMO-REF-002', days: 2 },
@@ -88,29 +83,17 @@ app.post('/api/demo/login', (req, res) => {
   ];
   demoTxs.forEach((t, i) => {
     db.txs[userId].push({
-      id: Date.now() + i,
-      userId,
-      type: t.type,
-      currency: t.currency,
-      amount: t.amount,
-      status: t.status,
-      description: t.description,
-      reference: t.reference,
+      id: Date.now() + i, userId,
+      type: t.type, currency: t.currency, amount: t.amount,
+      status: t.status, description: t.description, reference: t.reference,
       created_at: new Date(Date.now() - t.days * 86400000).toISOString()
     });
   });
 
-  // بطاقة Visa تجريبية
   db.cards[userId].push({
-    id: Date.now(),
-    userId,
-    pan: '4532111122223333',
-    cvv: '123',
-    expiry: '12/28',
-    holder: 'DEMO USER',
-    network: 'VISA',
-    status: 'active',
-    limit: 5000,
+    id: Date.now(), userId,
+    pan: '4532111122223333', cvv: '123', expiry: '12/28',
+    holder: 'DEMO USER', network: 'VISA', status: 'active', limit: 5000,
     created_at: new Date().toISOString()
   });
 
@@ -119,27 +102,17 @@ app.post('/api/demo/login', (req, res) => {
   res.json({
     token,
     user: {
-      id: user.id,
-      accountNumber: user.accountNumber,
-      full_name: user.full_name,
-      phone: user.phone,
-      email: user.email,
-      wallet_address: user.wallet_address,
-      iban: user.iban,
-      bban: user.bban,
-      bank_code: user.bank_code,
-      profile_picture: null,
-      preferences: user.preferences,
-      transferCode: user.transferCode,
-      is_demo: true
+      id: user.id, accountNumber: user.accountNumber, full_name: user.full_name,
+      phone: user.phone, email: user.email, wallet_address: user.wallet_address,
+      iban: user.iban, bban: user.bban, bank_code: user.bank_code,
+      profile_picture: null, preferences: user.preferences,
+      transferCode: user.transferCode, is_demo: true
     }
   });
 });
 
 // ============ Wallet ============
-app.get('/api/wallet/balances', auth, (req, res) => {
-  res.json(req.user.balances || []);
-});
+app.get('/api/wallet/balances', auth, (req, res) => res.json(req.user.balances || []));
 
 app.get('/api/wallet/transactions', auth, (req, res) => {
   res.json((db.txs[req.user.id] || []).sort((a, b) => b.id - a.id));
@@ -153,60 +126,35 @@ app.get('/api/wallet/received', auth, (req, res) => {
   res.json((db.txs[req.user.id] || []).filter(t => t.type === 'receive').sort((a, b) => b.id - a.id));
 });
 
-// ============ Send (Demo → creates fake recipient) ============
+// ============ Send ============
 app.post('/api/send/by-account', auth, (req, res) => {
   const { toAccountNumber, currency, amount, note } = req.body;
   const amt = parseFloat(amount);
-
-  if (!toAccountNumber || !amt || !currency) {
-    return res.status(400).json({ error: 'البيانات ناقصة' });
-  }
+  if (!toAccountNumber || !amt || !currency) return res.status(400).json({ error: 'البيانات ناقصة' });
   if (amt <= 0) return res.status(400).json({ error: 'المبلغ غير صحيح' });
 
   const bal = (req.user.balances || []).find(b => b.currency === currency);
-  if (!bal || bal.balance < amt) {
-    return res.status(400).json({ error: 'الرصيد غير كافٍ' });
-  }
-
+  if (!bal || bal.balance < amt) return res.status(400).json({ error: 'الرصيد غير كافٍ' });
   bal.balance -= amt;
 
   const ref = 'DEMO' + Date.now().toString().slice(-8);
   const padAcc = String(toAccountNumber).padStart(5, '0');
 
   db.txs[req.user.id].unshift({
-    id: Date.now(),
-    userId: req.user.id,
-    type: 'out',
-    currency,
-    amount: amt,
+    id: Date.now(), userId: req.user.id, type: 'out', currency, amount: amt,
     status: 'completed',
     description: `إرسال إلى مستخدم تجريبي (#${padAcc})`,
-    reference: ref,
-    toAccount: padAcc,
-    toName: 'مستخدم تجريبي',
-    toPhone: '+249000000000',
-    fromAccount: req.user.accountNumber,
-    fromName: req.user.full_name,
-    note: note || '',
+    reference: ref, toAccount: padAcc, toName: 'مستخدم تجريبي',
+    toPhone: '+249000000000', fromAccount: req.user.accountNumber,
+    fromName: req.user.full_name, note: note || '',
     created_at: new Date().toISOString()
   });
 
   res.json({
-    message: 'تم التحويل (تجريبي)',
-    reference: ref,
-    recipient: {
-      accountNumber: padAcc,
-      name: 'مستخدم تجريبي',
-      phone: '+249000000000'
-    },
-    sender: {
-      accountNumber: req.user.accountNumber,
-      name: req.user.full_name,
-      phone: req.user.phone
-    },
-    amount: amt,
-    currency,
-    date: new Date().toISOString()
+    message: 'تم التحويل (تجريبي)', reference: ref,
+    recipient: { accountNumber: padAcc, name: 'مستخدم تجريبي', phone: '+249000000000' },
+    sender: { accountNumber: req.user.accountNumber, name: req.user.full_name, phone: req.user.phone },
+    amount: amt, currency, date: new Date().toISOString()
   });
 });
 
@@ -214,23 +162,18 @@ app.post('/api/send/by-account', auth, (req, res) => {
 app.post('/api/refund', auth, (req, res) => {
   const { transactionId } = req.body;
   if (!transactionId) return res.status(400).json({ error: 'البيانات ناقصة' });
-
   const tx = (db.txs[req.user.id] || []).find(t => t.id === parseInt(transactionId));
   if (!tx) return res.status(404).json({ error: 'غير موجودة' });
   if (tx.type !== 'out') return res.status(400).json({ error: 'فقط المرسلة' });
-  if (tx.refunded) return res.status(400).json({ error: 'تم استرجاعها مسبقاً' });
+  if (tx.refunded) return res.status(400).json({ error: 'تم استرجاعها' });
 
   const bal = (req.user.balances || []).find(b => b.currency === tx.currency);
   if (bal) bal.balance += tx.amount;
   tx.refunded = true;
 
   db.txs[req.user.id].unshift({
-    id: Date.now(),
-    userId: req.user.id,
-    type: 'receive',
-    currency: tx.currency,
-    amount: tx.amount,
-    status: 'completed',
+    id: Date.now(), userId: req.user.id, type: 'receive',
+    currency: tx.currency, amount: tx.amount, status: 'completed',
     description: `استرجاع مبلغ تجريبي — ${tx.reference}`,
     reference: 'REF' + Date.now().toString().slice(-6),
     created_at: new Date().toISOString()
@@ -243,13 +186,8 @@ app.post('/api/refund', auth, (req, res) => {
 app.get('/api/wallester/cards', auth, (req, res) => {
   const cards = db.cards[req.user.id] || [];
   res.json(cards.map(c => ({
-    id: c.id,
-    card_number_last4: c.pan.slice(-4),
-    expiry_date: c.expiry,
-    card_holder: c.holder,
-    network: c.network,
-    status: c.status,
-    spending_limit: c.limit
+    id: c.id, card_number_last4: c.pan.slice(-4), expiry_date: c.expiry,
+    card_holder: c.holder, network: c.network, status: c.status, spending_limit: c.limit
   })));
 });
 
@@ -262,28 +200,18 @@ app.post('/api/wallester/issue-card', auth, (req, res) => {
   const year = String(new Date().getFullYear() + 3).slice(-2);
 
   const newCard = {
-    id: Date.now(),
-    userId: req.user.id,
-    pan,
-    cvv,
-    expiry: `${month}/${year}`,
-    holder: req.user.full_name.toUpperCase(),
+    id: Date.now(), userId: req.user.id, pan, cvv,
+    expiry: `${month}/${year}`, holder: req.user.full_name.toUpperCase(),
     network: scheme === 'mastercard' ? 'MASTERCARD' : 'VISA',
-    status: 'active',
-    limit: req.body.limit || 5000,
+    status: 'active', limit: req.body.limit || 5000,
     created_at: new Date().toISOString()
   };
-
   if (!db.cards[req.user.id]) db.cards[req.user.id] = [];
   db.cards[req.user.id].push(newCard);
 
   db.txs[req.user.id].unshift({
-    id: Date.now(),
-    userId: req.user.id,
-    type: 'receive',
-    currency: 'USD',
-    amount: 0,
-    status: 'completed',
+    id: Date.now(), userId: req.user.id, type: 'receive',
+    currency: 'USD', amount: 0, status: 'completed',
     description: `إصدار بطاقة ${scheme}`,
     created_at: new Date().toISOString()
   });
@@ -308,21 +236,15 @@ app.patch('/api/wallester/cards/:id/freeze', auth, (req, res) => {
 app.get('/api/rates/all', async (req, res) => {
   try {
     let fiat = {}, crypto = {}, goldSilver = {};
-
     try {
       const r = await axios.get('https://api.exchangerate-api.com/v4/latest/USD', { timeout: 5000 });
       fiat = r.data.rates || {};
     } catch (e) {
       fiat = { SDG: 2400, EGP: 48, SAR: 3.75, AED: 3.67, EUR: 0.92, GBP: 0.79 };
     }
-
     try {
       const r = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
-        params: {
-          ids: 'bitcoin,ethereum,tether,binancecoin,solana',
-          vs_currencies: 'usd,sdg',
-          include_24hr_change: true
-        },
+        params: { ids: 'bitcoin,ethereum,tether,binancecoin,solana', vs_currencies: 'usd,sdg', include_24hr_change: true },
         timeout: 5000
       });
       crypto = r.data;
@@ -334,7 +256,6 @@ app.get('/api/rates/all', async (req, res) => {
         binancecoin: { usd: 580, sdg: 1392000, usd_24h_change: 2.1 }
       };
     }
-
     const rate = 2420;
     const goldUSD = 2650, silverUSD = 31;
     goldSilver = {
@@ -344,23 +265,15 @@ app.get('/api/rates/all', async (req, res) => {
         perGram18k: (goldUSD * rate / 31.1035) * (18/24),
         perOunce: goldUSD * rate
       },
-      silver: {
-        perGram: silverUSD * rate / 31.1035,
-        perOunce: silverUSD * rate
-      },
+      silver: { perGram: silverUSD * rate / 31.1035, perOunce: silverUSD * rate },
       updated: new Date().toISOString()
     };
-
     res.json({
-      fiat,
-      crypto,
-      goldSilver,
+      fiat, crypto, goldSilver,
       sudanDollar: { buy: 2350, sell: 2420, official: 601, parallel: 2420, updated: new Date().toISOString() },
       timestamp: new Date().toISOString()
     });
-  } catch (e) {
-    res.status(500).json({ error: 'فشل' });
-  }
+  } catch (e) { res.status(500).json({ error: 'فشل' }); }
 });
 
 // ============ Adhkar ============
@@ -368,10 +281,10 @@ const adhkarData = {
   morning: [
     { text: 'اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... (آية الكرسي)', count: 1 },
     { text: 'قُلْ هُوَ اللَّهُ أَحَدٌ... والمعوذتين', count: 3 },
-    { text: 'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ', count: 1 },
+    { text: 'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ', count: 1 },
     { text: 'اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ', count: 1 },
-    { text: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ (سيد الاستغفار)', count: 1 },
-    { text: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ، وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ', count: 7 },
+    { text: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ (سيد الاستغفار)', count: 1 },
+    { text: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ', count: 7 },
     { text: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ', count: 3 },
     { text: 'رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ نَبِيًّا', count: 3 },
     { text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', count: 100 },
@@ -380,12 +293,11 @@ const adhkarData = {
   evening: [
     { text: 'اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... (آية الكرسي)', count: 1 },
     { text: 'قُلْ هُوَ اللَّهُ أَحَدٌ... والمعوذتين', count: 3 },
-    { text: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ', count: 1 },
+    { text: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ', count: 1 },
     { text: 'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ', count: 1 },
-    { text: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ (سيد الاستغفار)', count: 1 },
     { text: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', count: 3 },
-    { text: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ', count: 3 },
     { text: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ', count: 7 },
+    { text: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ', count: 3 },
     { text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', count: 100 },
     { text: 'اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى سَيِّدِنَا مُحَمَّدٍ', count: 10 }
   ],
@@ -437,7 +349,7 @@ app.post('/api/qibla', (req, res) => {
   res.json({ bearing: Math.round(bearing), distance: Math.round(distance) });
 });
 
-// ============ User Profile / Preferences ============
+// ============ User ============
 app.get('/api/user/profile', auth, (req, res) => {
   const u = req.user;
   res.json({
@@ -466,7 +378,7 @@ app.post('/api/auth/logout', auth, (req, res) => {
   res.json({ message: 'OK' });
 });
 
-// ============ Services (Mock) ============
+// ============ Services ============
 app.post('/api/interbank/transfer', auth, (req, res) => {
   const { toIBAN, amount } = req.body;
   const amt = parseFloat(amount);
@@ -552,10 +464,7 @@ app.post('/api/paymob/payout', auth, (req, res) => {
 });
 
 app.post('/api/binance/create-order', auth, (req, res) => {
-  res.json({
-    checkoutUrl: 'https://pay.binance.com/sandbox?amount=' + req.body.amount,
-    mock: true
-  });
+  res.json({ checkoutUrl: 'https://pay.binance.com/sandbox?amount=' + req.body.amount, mock: true });
 });
 
 app.post('/api/binance/transfer', auth, (req, res) => {
@@ -609,14 +518,7 @@ app.get('/api/earnings/facebook', auth, (req, res) => {
   res.json({ earnings: 320.75, currency: 'USD', pending: 120.00 });
 });
 
-// ============ Serve Demo UI ============
-  const p = path.join(__dirname, 'index-demo.html');
-app.get('/', (req, res) => {
-  const p = path.join(__dirname, 'index-demo.html');
-  if (fs.existsSync(p)) res.sendFile(p);
-  else res.json({ status: '🎮 Demo server running', message: 'ضع index-demo.html في نفس المجلد' });
-});
-
+// ============ Serve UI ============
 app.get('/manifest.json', (req, res) => {
   res.json({
     name: 'Medo Demo', short_name: 'Medo Demo', start_url: '/', display: 'standalone',
@@ -624,12 +526,12 @@ app.get('/manifest.json', (req, res) => {
   });
 });
 
-// ============ Start ============
+app.get('/', (req, res) => {
+  const p = path.join(__dirname, 'index-demo.html');
+  if (fs.existsSync(p)) res.sendFile(p);
+  else res.json({ status: '🎮 Demo server running' });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('\n╔══════════════════════════════════════╗');
-  console.log('║   🎮 Medo DEMO SERVER                 ║');
-  console.log(`║   🌐 http://localhost:${PORT}          ║`);
-  console.log('║   ✅ بيئة منفصلة تماماً              ║');
-  console.log('║   ✅ لا تأثير على التطبيق الأصلي      ║');
-  console.log('╚══════════════════════════════════════╝\n');
+  console.log(`\n🎮 Medo DEMO SERVER running on port ${PORT}\n`);
 });

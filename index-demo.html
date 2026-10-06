@@ -1,4 +1,4 @@
-const API = window.location.origin + '/api';<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -99,8 +99,7 @@ transition:.3s;z-index:2;overflow-y:auto;color:var(--text)}
 .screen.active{opacity:1;pointer-events:auto;transform:none;z-index:5}
 
 #welcomeScreen{background:linear-gradient(165deg,#6c3bf4,#4c1d95 60%,#2e1065);
-padding:40px 24px;justify-content:center;text-align:center;color:#fff;
-padding-top:60px}
+padding:40px 24px;justify-content:center;text-align:center;color:#fff;padding-top:60px}
 .welcome-logo{width:140px;height:140px;margin:0 auto 20px;
 filter:drop-shadow(0 20px 40px rgba(108,59,244,.5));
 animation:float 3s ease-in-out infinite}
@@ -210,8 +209,7 @@ display:grid;place-items:center;flex-shrink:0}
 .bottom-nav{display:flex;background:var(--bg-2);border-top:1px solid var(--line);
 padding:8px 4px 10px;flex-shrink:0;z-index:10;box-shadow:0 -4px 20px rgba(60,30,120,.07)}
 .nav-item{flex:1;background:none;border:none;cursor:pointer;display:flex;
-flex-direction:column;align-items:center;gap:3px;padding:5px 0;font-family:inherit;
-position:relative}
+flex-direction:column;align-items:center;gap:3px;padding:5px 0;font-family:inherit;position:relative}
 .nav-item::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
 width:0;height:3px;background:var(--primary);border-radius:0 0 4px 4px;transition:width .3s}
 .nav-item.active::before{width:40%}
@@ -271,7 +269,6 @@ display:none;place-items:center;z-index:200}
 border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Tutorial Modal */
 .tutorial-modal{position:absolute;inset:0;background:rgba(0,0,0,.85);
 display:none;place-items:center;z-index:600;padding:20px;backdrop-filter:blur(6px)}
 .tutorial-modal.show{display:grid}
@@ -309,7 +306,6 @@ font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:.2s
 box-shadow:0 8px 20px rgba(16,185,129,.35)}
 .btn-learn-more{background:rgba(108,59,244,.1);color:var(--primary)}
 
-/* بطاقة Visa */
 .visa-card{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
 border-radius:22px;padding:22px;color:#fff;position:relative;overflow:hidden;
 margin-bottom:16px;box-shadow:0 16px 40px rgba(0,0,0,.3);min-height:210px}
@@ -390,17 +386,12 @@ font-size:12.5px;border-bottom:1px solid var(--line)}
 .success-details .row:last-child{border-bottom:none}
 .success-details .row span{color:var(--muted)}
 .success-details .row strong{color:var(--text);font-weight:700}
-.btn-ghost2{background:rgba(108,59,244,.08);color:var(--text);border:1px solid var(--line);
-width:100%;height:50px;border-radius:14px;font-family:inherit;font-size:14px;
-font-weight:700;cursor:pointer;margin-top:8px}
 </style>
 </head>
 <body><div class="phone">
 
-<!-- شريط DEMO -->
 <div class="demo-banner" id="demoBanner">نسخة تجريبية — الأرصدة وهمية</div>
 
-<!-- الشريط العلوي -->
 <div class="top-bar" id="topBar">
   <button class="top-btn" onclick="toggleSideMenu()">
     <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -420,7 +411,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
 
 <div class="adhkar-ticker" id="adhkarTicker"></div>
 
-<!-- القائمة الجانبية -->
 <div class="side-menu-overlay" id="sideMenuOverlay" onclick="toggleSideMenu()"></div>
 <aside class="side-menu" id="sideMenu">
   <div class="side-menu-header">
@@ -467,7 +457,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
   </button>
 </aside>
 
-<!-- شاشة الترحيب -->
 <section class="screen active" id="welcomeScreen">
   <div class="demo-badge">🎮 نسخة تجريبية</div>
   <div class="welcome-logo">
@@ -498,10 +487,8 @@ font-weight:700;cursor:pointer;margin-top:8px}
   <button class="btn-ghost" onclick="showTutorial()">📚 ما هي النسخة التجريبية؟</button>
 </section>
 
-<!-- التطبيق -->
 <section class="screen" id="appScreen">
   <div class="app-body">
-    <!-- الرئيسية -->
     <div class="tab-page active" data-page="home">
       <div class="hero">
         <div class="hero-top">
@@ -513,7 +500,7 @@ font-weight:700;cursor:pointer;margin-top:8px}
               <div class="acc" id="userAcc">#DEMO1234</div>
             </div>
           </div>
-          <button class="top-btn" style="background:rgba(255,255,255,.14);width:44px;height:44px" onclick="toast('🎮 نسخة تجريبية')">
+          <button class="top-btn" style="background:rgba(255,255,255,.14);width:44px;height:44px" onclick="showTutorial()">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v.01M11 12h1v4h1"/></svg>
           </button>
         </div>
@@ -532,7 +519,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
       </div>
     </div>
 
-    <!-- الأسعار -->
     <div class="tab-page" data-page="rates">
       <div class="simple-header"><h2>الأسعار المباشرة</h2><p>عملات • ذهب • فضة</p></div>
       <div class="content">
@@ -543,7 +529,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
       </div>
     </div>
 
-    <!-- الخدمات -->
     <div class="tab-page" data-page="services">
       <div class="simple-header"><h2>الخدمات</h2><p>كل ما تحتاجه</p></div>
       <div class="content">
@@ -560,7 +545,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
       </div>
     </div>
 
-    <!-- بطاقاتي -->
     <div class="tab-page" data-page="card">
       <div class="simple-header"><h2>بطاقاتي</h2><p>Visa / Mastercard تجريبية</p></div>
       <div class="content">
@@ -572,7 +556,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
       </div>
     </div>
 
-    <!-- العمليات -->
     <div class="tab-page" data-page="ops">
       <div class="simple-header"><h2>سجل العمليات</h2><p>جميع معاملاتك</p></div>
       <div class="content">
@@ -585,7 +568,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
       </div>
     </div>
 
-    <!-- الأذكار -->
     <div class="tab-page" data-page="adhkar">
       <div class="simple-header"><h2>الأذكار والأدعية</h2><p>حصن المسلم</p></div>
       <div class="content">
@@ -627,7 +609,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
   </nav>
 </section>
 
-<!-- شاشات فرعية -->
 <section class="screen" id="receiveScreen">
   <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>استلام</h2></div>
   <div class="sub-body">
@@ -778,7 +759,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
   </div>
 </section>
 
-<!-- Tutorial Modal -->
 <div class="tutorial-modal" id="tutorialModal">
   <div class="tutorial-card">
     <div class="tutorial-icon">
@@ -786,9 +766,7 @@ font-weight:700;cursor:pointer;margin-top:8px}
     </div>
     <h2>🎮 مرحباً في التجربة!</h2>
     <p>حساب تجريبي بمبالغ وهمية لتجربة كل ميزات Medo</p>
-
     <div class="tutorial-balances" id="tutorialBalances"></div>
-
     <div class="tutorial-step">
       <div class="tutorial-step-num">1</div>
       <div class="tutorial-step-text">
@@ -796,7 +774,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
         أنشئ بطاقة افتراضية مجاناً وجرّب الدفع بها من "بطاقتي"
       </div>
     </div>
-
     <div class="tutorial-step">
       <div class="tutorial-step-num">2</div>
       <div class="tutorial-step-text">
@@ -804,7 +781,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
         حوّل بين الحسابات. جرّب إرسال أي مبلغ تجريبي
       </div>
     </div>
-
     <div class="tutorial-step">
       <div class="tutorial-step-num">3</div>
       <div class="tutorial-step-text">
@@ -812,7 +788,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
         من "الخدمات" → Binance Pay. جرّب USDT/BTC/ETH
       </div>
     </div>
-
     <div class="tutorial-step">
       <div class="tutorial-step-num">4</div>
       <div class="tutorial-step-text">
@@ -820,7 +795,6 @@ font-weight:700;cursor:pointer;margin-top:8px}
         كل خدمات الشحن والدفع متاحة — جرّب بحرية!
       </div>
     </div>
-
     <div class="tutorial-actions">
       <button class="btn-learn-more" onclick="closeTutorial()">لاحقاً</button>
       <button class="btn-start" onclick="closeTutorial()">ابدأ التجربة</button>
@@ -854,10 +828,9 @@ font-weight:700;cursor:pointer;margin-top:8px}
 </div><script>
 // ============================================
 // Medo DEMO — JavaScript
-// يتصل بـ port 3001
+// يعمل محلياً وعلى Render
 // ============================================
-const API = window.location.origin + '/api';  ? window.location.origin + '/api'
-  : 'http://localhost:3001/api';
+const API = window.location.origin + '/api';
 
 let currentUser = null, authToken = null;
 let currentSub = null, adhkarData = [], adhkarTime = 'morning';
@@ -1012,7 +985,7 @@ async function startDemo(){
     toast('🎮 مرحباً في النسخة التجريبية!');
   } catch(err){
     if (err.message === 'NETWORK') {
-      toast('❌ تعذر الاتصال — تأكد أن server-demo.js يعمل', 5000);
+      toast('❌ تعذر الاتصال بالسيرفر — حاول مجدداً', 5000);
     } else {
       toast(err.message);
     }
@@ -1058,6 +1031,7 @@ async function enterApp(){
 }
 
 async function logout(){
+  try { await api('/auth/logout', { method: 'POST' }); } catch(e){}
   authToken = null; currentUser = null;
   store.remove('demo_token'); store.remove('demo_user');
   if (tickerTimer) clearInterval(tickerTimer);
@@ -1253,13 +1227,8 @@ async function getQibla(){
       await new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
           (pos) => { lat = pos.coords.latitude; lng = pos.coords.longitude; resolve(); },
-          async () => {
-            try {
-              const geo = await fetch('http://ip-api.com/json/').then(r => r.json());
-              lat = geo.lat; lng = geo.lon;
-            } catch(e){}
-            resolve();
-          }, { timeout: 5000 }
+          () => resolve(),
+          { timeout: 5000 }
         );
       });
     }
@@ -1436,7 +1405,7 @@ async function handleBinance(){
       const data = await api('/binance/transfer', { method: 'POST', body: JSON.stringify({ payId: target, amount, currency }) });
       toast('✅ تم التحويل — ' + (data.txId || 'OK'));
     } else {
-      const data = await api('/binance/create-order', { method: 'POST', body: JSON.stringify({ amount, currency }) });
+      await api('/binance/create-order', { method: 'POST', body: JSON.stringify({ amount, currency }) });
       toast('📥 تم إنشاء الطلب (تجريبي)');
     }
     closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
@@ -1535,14 +1504,12 @@ async function freezeCard(id){
 // ============ Init ============
 document.addEventListener('DOMContentLoaded', () => {
   const savedToken = store.get('demo_token');
-  if (savedToken) {
+  const savedUser = store.get('demo_user');
+  if (savedToken && savedUser) {
     authToken = savedToken;
-    const savedUser = store.get('demo_user');
-    if (savedUser) {
-      currentUser = savedUser;
-      enterApp();
-      return;
-    }
+    currentUser = savedUser;
+    enterApp();
+    return;
   }
   setTimeout(() => showScreen('welcomeScreen'), 300);
 });
