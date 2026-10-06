@@ -1,0 +1,17 @@
+{
+  "name": "medo-demo",
+  "version": "1.0.0",
+  "description": "Medo Demo - تجربة تفاعلية",
+  "main": "server-demo.js",
+  "scripts": {
+    "start": "node server-demo.js"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "axios": "^1.7.2"
+  }
+}

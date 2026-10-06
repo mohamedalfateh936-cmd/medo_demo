@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 Medo Demo — نسخة تجريبية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#6c3bf4;--primary-dark:#4c1d95;--demo:#f59e0b;--demo-dark:#d97706;
+--accent:#22d3ee;--bg:#f4f2fb;--bg-2:#fff;--text:#1a1626;--muted:#7e7a8f;
+--line:#ece9f5;--success:#10b981;--danger:#ef4444;--card-bg:#fff}
+[data-theme="dark"]{--bg:#0f0d1a;--bg-2:#1a1626;--text:#f4f2fb;--muted:#9a94a8;
+--line:#2a2440;--card-bg:#1f1a2f}
+body{font-family:'Cairo',system-ui,sans-serif;background:#d8d4e8;min-height:100vh;
+display:flex;align-items:center;justify-content:center;padding:20px;color:var(--text)}
+[data-theme="dark"] body{background:#050308}
+.phone{width:400px;height:860px;max-height:96vh;background:var(--bg);
+border-radius:34px;overflow:hidden;position:relative;
+box-shadow:0 30px 70px rgba(60,30,120,.35);display:flex;flex-direction:column}
+@media(max-width:480px){body{padding:0;display:block}
+.phone{width:100%;height:100vh;max-height:none;border-radius:0;box-shadow:none}}
+
+.demo-banner{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;
+padding:8px 16px;font-size:11px;font-weight:800;text-align:center;
+position:relative;z-index:100;display:flex;align-items:center;justify-content:center;gap:6px}
+.demo-banner::before{content:'🎮'}
+.demo-banner::after{content:'🎮'}
+
+.top-bar{position:absolute;top:35px;left:0;right:0;z-index:150;
+display:flex;align-items:center;justify-content:space-between;
+padding:10px 14px;pointer-events:none;opacity:0;transition:opacity .3s}
+.top-bar.show{opacity:1}
+.top-bar-center{position:absolute;left:50%;top:45px;transform:translateX(-50%);
+z-index:151;display:none}
+.top-bar-center.show{display:block}
+.top-btn{width:44px;height:44px;border-radius:14px;border:none;
+background:rgba(108,59,244,.95);color:#fff;display:grid;place-items:center;
+cursor:pointer;pointer-events:auto;box-shadow:0 4px 15px rgba(108,59,244,.4);
+transition:.2s;backdrop-filter:blur(8px)}
+.top-btn:active{transform:scale(.9)}
+.top-btn svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2.2;
+stroke-linecap:round;stroke-linejoin:round}
+.home-btn-center{width:52px;height:52px;border-radius:16px;
+background:linear-gradient(135deg,#6c3bf4,#4c1d95);color:#fff;
+display:none;place-items:center;cursor:pointer;pointer-events:auto;
+box-shadow:0 8px 25px rgba(108,59,244,.6);border:2.5px solid rgba(255,255,255,.35)}
+.home-btn-center.show{display:grid}
+.home-btn-center svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.3;
+stroke-linecap:round;stroke-linejoin:round}
+.back-btn-center{width:52px;height:52px;border-radius:16px;
+background:linear-gradient(135deg,#f59e0b,#dc2626);color:#fff;
+display:none;place-items:center;cursor:pointer;pointer-events:auto;
+box-shadow:0 8px 25px rgba(220,38,38,.6);border:2.5px solid rgba(255,255,255,.35)}
+.back-btn-center.show{display:grid}
+.back-btn-center svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.5;
+stroke-linecap:round;stroke-linejoin:round}
+
+.adhkar-ticker{position:absolute;top:90px;left:14px;max-width:70%;z-index:120;
+background:rgba(16,185,129,.95);color:#fff;padding:8px 14px;border-radius:14px;
+font-size:11.5px;font-weight:700;box-shadow:0 4px 20px rgba(16,185,129,.5);
+backdrop-filter:blur(8px);display:none;animation:slideDown .5s ease;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.adhkar-ticker.show{display:block}
+.adhkar-ticker::before{content:'📿 ';margin-left:4px}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+
+.side-menu{position:absolute;top:0;right:-320px;bottom:0;width:300px;z-index:300;
+background:var(--bg-2);box-shadow:-10px 0 40px rgba(0,0,0,.3);
+transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+overflow-y:auto}
+.side-menu.open{right:0}
+.side-menu-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:250;
+opacity:0;pointer-events:none;transition:opacity .3s}
+.side-menu-overlay.show{opacity:1;pointer-events:auto}
+.side-menu-header{background:linear-gradient(150deg,#6c3bf4,#4c1d95);color:#fff;
+padding:30px 20px 24px;border-radius:0 0 24px 24px;margin-bottom:16px}
+.side-menu-header h3{font-size:16px;font-weight:800;margin-bottom:4px}
+.side-menu-header p{font-size:11px;opacity:.85}
+.side-menu-user{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.avatar{width:46px;height:46px;border-radius:15px;background:rgba(255,255,255,.2);
+border:1.5px solid rgba(255,255,255,.35);display:grid;place-items:center;
+font-weight:800;font-size:18px;overflow:hidden}
+.side-menu-user .avatar{width:48px;height:48px;font-size:20px}
+.side-menu-item{display:flex;align-items:center;gap:14px;padding:14px 20px;
+cursor:pointer;transition:.2s;border-right:4px solid transparent;color:var(--text);
+background:transparent;border-top:none;border-left:none;border-bottom:none;
+width:100%;font-family:inherit;text-align:right;font-size:14px}
+.side-menu-item:active{background:rgba(108,59,244,.08)}
+.side-menu-item.active{background:rgba(108,59,244,.1);border-right-color:var(--primary);
+color:var(--primary);font-weight:700}
+.side-menu-item svg{width:22px;height:22px;stroke:var(--primary);fill:none;
+stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.side-menu-item .label{flex:1}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+background:var(--bg);opacity:0;pointer-events:none;transform:translateX(-40px);
+transition:.3s;z-index:2;overflow-y:auto;color:var(--text)}
+.screen.active{opacity:1;pointer-events:auto;transform:none;z-index:5}
+
+#welcomeScreen{background:linear-gradient(165deg,#6c3bf4,#4c1d95 60%,#2e1065);
+padding:40px 24px;justify-content:center;text-align:center;color:#fff;
+padding-top:60px}
+.welcome-logo{width:140px;height:140px;margin:0 auto 20px;
+filter:drop-shadow(0 20px 40px rgba(108,59,244,.5));
+animation:float 3s ease-in-out infinite}
+.welcome-logo svg{width:100%;height:100%}
+#welcomeScreen h1{font-size:44px;font-weight:800;margin-bottom:8px;
+background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;background-clip:text}
+#welcomeScreen .subtitle{display:flex;align-items:center;justify-content:center;
+gap:8px;margin-bottom:24px}
+#welcomeScreen .subtitle p{font-size:13px;opacity:.9;font-weight:600}
+#welcomeScreen .subtitle .line{width:40px;height:3px;border-radius:2px;
+background:linear-gradient(90deg,#22d3ee,#06b6d4)}
+.demo-badge{display:inline-block;background:linear-gradient(135deg,#f59e0b,#d97706);
+color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:20px;
+margin-bottom:20px;box-shadow:0 4px 15px rgba(245,158,11,.4)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.btn-white{width:100%;height:54px;border:none;border-radius:16px;background:#fff;
+color:var(--primary-dark);font-family:inherit;font-size:16px;font-weight:800;cursor:pointer}
+.btn-white:active{transform:scale(.97)}
+.btn-demo{width:100%;height:64px;border:none;border-radius:18px;
+background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;
+font-family:inherit;font-size:17px;font-weight:800;cursor:pointer;
+box-shadow:0 12px 30px rgba(245,158,11,.5);
+display:flex;align-items:center;justify-content:center;gap:10px;
+margin-bottom:12px;animation:demoPulse 2s ease-in-out infinite}
+@keyframes demoPulse{0%,100%{box-shadow:0 12px 30px rgba(245,158,11,.5)}
+50%{box-shadow:0 12px 40px rgba(245,158,11,.8)}}
+.btn-demo:active{transform:scale(.97)}
+.btn-demo svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2}
+.btn-ghost{width:100%;height:54px;border:1.5px solid rgba(255,255,255,.4);
+border-radius:16px;background:transparent;color:#fff;font-family:inherit;
+font-size:15px;font-weight:700;cursor:pointer}
+
+.app-body{flex:1;overflow-y:auto;overflow-x:hidden;padding-top:0}
+.tab-page{display:none}
+.tab-page.active{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+.hero{background:linear-gradient(150deg,#6c3bf4 0%,#4c1d95 100%);
+padding:80px 20px 24px;border-radius:0 0 30px 30px;color:#fff;
+position:relative;overflow:hidden}
+.hero-top{display:flex;align-items:center;justify-content:space-between;
+position:relative;z-index:1;margin-bottom:18px}
+.user{display:flex;align-items:center;gap:11px}
+.user-info small{display:block;font-size:11px;opacity:.85;margin-bottom:2px}
+.user-info strong{font-size:15px;font-weight:700}
+.user-info .acc{font-size:11px;opacity:.95;direction:ltr;margin-top:3px;
+background:rgba(255,255,255,.2);padding:3px 10px;border-radius:8px;
+display:inline-block;font-weight:800;letter-spacing:2px}
+.currency-cards{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.currency-cards::-webkit-scrollbar{display:none}
+.cc{min-width:150px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+border-radius:18px;padding:14px 15px;flex-shrink:0}
+.cc-head{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.cc-flag{font-size:18px}
+.cc-code{font-size:12px;font-weight:700;opacity:.9}
+.cc-amount{font-size:21px;font-weight:800}
+.cc-label{font-size:10.5px;opacity:.7;margin-top:2px}
+
+.content{padding:20px 16px 24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.section-head h3{font-size:15.5px;font-weight:800}
+.section-head a{font-size:12.5px;color:var(--primary);text-decoration:none;font-weight:700;cursor:pointer}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
+.quick{background:var(--card-bg);border:none;border-radius:17px;padding:13px 4px 11px;
+display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
+font-family:inherit;box-shadow:0 2px 10px rgba(60,30,120,.06);color:var(--text)}
+.quick:active{transform:scale(.94)}
+.quick .q-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+background:rgba(108,59,244,.1)}
+.quick .q-icon svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:1.9}
+.quick span{font-size:10.5px;font-weight:700;color:var(--text)}
+.tx-list{display:flex;flex-direction:column;gap:9px}
+.tx{background:var(--card-bg);border-radius:17px;padding:13px 14px;display:flex;
+align-items:center;gap:12px;box-shadow:0 2px 10px rgba(60,30,120,.05);cursor:pointer}
+.tx-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex-shrink:0}
+.tx-icon.in{background:rgba(16,185,129,.12);color:var(--success)}
+.tx-icon.out{background:rgba(239,68,68,.1);color:var(--danger)}
+.tx-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+.tx-info{flex:1;min-width:0}
+.tx-info strong{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis}
+.tx-info small{font-size:11px;color:var(--muted)}
+.tx-amount{font-size:13.5px;font-weight:800;white-space:nowrap}
+.tx-amount.in{color:var(--success)}
+.tx-amount.out{color:var(--danger)}
+
+.simple-header{background:linear-gradient(150deg,#6c3bf4,#4c1d95);color:#fff;
+padding:80px 20px 20px;border-radius:0 0 26px 26px}
+.simple-header h2{font-size:20px;font-weight:800}
+.simple-header p{font-size:12px;opacity:.85;margin-top:3px}
+
+.list-card{background:var(--card-bg);border-radius:18px;overflow:hidden;
+box-shadow:0 2px 10px rgba(60,30,120,.05);margin-bottom:14px}
+.list-item{display:flex;align-items:center;gap:12px;padding:15px 16px;
+border-bottom:1px solid var(--line);cursor:pointer;background:var(--card-bg);
+border-left:none;border-right:none;border-top:none;width:100%;
+font-family:inherit;text-align:right;color:var(--text)}
+.list-item:last-child{border-bottom:none}
+.li-icon{width:42px;height:42px;border-radius:13px;background:rgba(108,59,244,.1);
+display:grid;place-items:center;flex-shrink:0}
+.li-icon svg{width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:1.9}
+.li-text{flex:1}
+.li-text strong{display:block;font-size:13.5px;font-weight:700}
+.li-text small{font-size:11px;color:var(--muted)}
+.li-arrow{color:#c3ccd3;font-size:18px}
+
+.bottom-nav{display:flex;background:var(--bg-2);border-top:1px solid var(--line);
+padding:8px 4px 10px;flex-shrink:0;z-index:10;box-shadow:0 -4px 20px rgba(60,30,120,.07)}
+.nav-item{flex:1;background:none;border:none;cursor:pointer;display:flex;
+flex-direction:column;align-items:center;gap:3px;padding:5px 0;font-family:inherit;
+position:relative}
+.nav-item::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+width:0;height:3px;background:var(--primary);border-radius:0 0 4px 4px;transition:width .3s}
+.nav-item.active::before{width:40%}
+.nav-item svg{width:22px;height:22px;stroke:#b0a9c4;fill:none;stroke-width:1.9}
+.nav-item span{font-size:9.5px;font-weight:700;color:#b0a9c4}
+.nav-item.active svg{stroke:var(--primary);transform:scale(1.15)}
+.nav-item.active span{color:var(--primary)}
+
+.sub-header{display:flex;align-items:center;gap:14px;
+background:linear-gradient(150deg,#6c3bf4,#4c1d95);color:#fff;padding:20px 18px}
+.sub-header button{background:rgba(255,255,255,.16);
+border:1px solid rgba(255,255,255,.25);width:40px;height:40px;border-radius:13px;
+display:grid;place-items:center;cursor:pointer;color:#fff}
+.sub-header button svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2}
+.sub-header h2{font-size:18px;font-weight:800}
+.sub-body{flex:1;overflow-y:auto;padding:20px 16px 30px}
+.sub-body .field{margin-bottom:16px}
+
+.toast{position:absolute;bottom:100px;left:50%;transform:translate(-50%,20px);
+background:#1a1626;color:#fff;padding:13px 22px;border-radius:15px;font-size:13px;
+font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:99;
+white-space:nowrap;max-width:90%;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.field input,.field select{width:100%;height:52px;border-radius:15px;
+border:1.5px solid var(--line);background:var(--bg-2);padding:0 15px;
+font-family:inherit;font-size:15px;color:var(--text);outline:none}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(108,59,244,.1)}
+.btn-primary{width:100%;height:54px;border:none;border-radius:16px;
+background:linear-gradient(135deg,#8b5cf6,#6c3bf4);color:#fff;font-family:inherit;
+font-size:16px;font-weight:800;cursor:pointer;margin-top:6px;
+box-shadow:0 10px 25px rgba(108,59,244,.35)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.5}
+
+.receive-option{background:var(--card-bg);border-radius:18px;padding:16px;
+margin-bottom:12px;box-shadow:0 2px 10px rgba(60,30,120,.05)}
+.receive-option h4{font-size:13.5px;font-weight:800;margin-bottom:10px;color:var(--text)}
+.ro-field{display:flex;align-items:center;gap:8px;background:rgba(108,59,244,.06);
+border-radius:13px;padding:12px 14px;margin-bottom:8px}
+.ro-field span{flex:1;font-size:12.5px;font-weight:600;overflow:hidden;
+text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left}
+.ro-field button{background:var(--primary);border:none;color:#fff;padding:7px 14px;
+border-radius:10px;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+
+.qr-box{background:#fff;padding:16px;border-radius:18px;text-align:center;
+margin-bottom:14px;display:inline-block}
+.qr-box img{display:block;margin:0 auto}
+
+.loading-overlay{position:absolute;inset:0;background:rgba(244,242,251,.92);
+display:none;place-items:center;z-index:200}
+[data-theme="dark"] .loading-overlay{background:rgba(15,13,26,.92)}
+.loading-overlay.show{display:grid}
+.spinner{width:44px;height:44px;border:4px solid var(--line);
+border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Tutorial Modal */
+.tutorial-modal{position:absolute;inset:0;background:rgba(0,0,0,.85);
+display:none;place-items:center;z-index:600;padding:20px;backdrop-filter:blur(6px)}
+.tutorial-modal.show{display:grid}
+.tutorial-card{background:var(--bg-2);border-radius:24px;padding:28px 24px;
+max-width:380px;width:100%;max-height:85vh;overflow-y:auto;
+animation:slideUp .4s ease;text-align:center}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.tutorial-icon{width:80px;height:80px;margin:0 auto 18px;border-radius:24px;
+background:linear-gradient(135deg,#f59e0b,#d97706);
+display:grid;place-items:center;
+box-shadow:0 12px 30px rgba(245,158,11,.4);
+animation:pulseScale 1.5s ease-in-out infinite}
+@keyframes pulseScale{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.tutorial-icon svg{width:40px;height:40px;stroke:#fff;fill:none;
+stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tutorial-card h2{font-size:22px;font-weight:800;margin-bottom:8px;color:var(--text)}
+.tutorial-card>p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.tutorial-balances{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
+.tutorial-balance{background:var(--bg);border-radius:12px;padding:12px;text-align:center}
+.tutorial-balance .flag{font-size:22px;display:block;margin-bottom:4px}
+.tutorial-balance .code{font-size:10px;color:var(--muted);font-weight:700}
+.tutorial-balance .amt{font-size:14px;font-weight:800;color:var(--primary);margin-top:2px}
+.tutorial-step{background:rgba(108,59,244,.06);border-radius:14px;
+padding:14px;margin-bottom:12px;text-align:right;display:flex;gap:12px;align-items:flex-start}
+.tutorial-step-num{width:32px;height:32px;border-radius:10px;flex-shrink:0;
+background:linear-gradient(135deg,#8b5cf6,#6c3bf4);color:#fff;
+display:grid;place-items:center;font-weight:800;font-size:14px}
+.tutorial-step-text{flex:1;font-size:12.5px;line-height:1.7;color:var(--text)}
+.tutorial-step-text strong{display:block;font-size:13.5px;font-weight:800;margin-bottom:3px;color:var(--primary)}
+.tutorial-actions{display:flex;gap:10px;margin-top:20px}
+.tutorial-actions button{flex:1;height:50px;border:none;border-radius:14px;
+font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:.2s}
+.tutorial-actions button:active{transform:scale(.97)}
+.btn-start{background:linear-gradient(135deg,#10b981,#047857);color:#fff;
+box-shadow:0 8px 20px rgba(16,185,129,.35)}
+.btn-learn-more{background:rgba(108,59,244,.1);color:var(--primary)}
+
+/* بطاقة Visa */
+.visa-card{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+border-radius:22px;padding:22px;color:#fff;position:relative;overflow:hidden;
+margin-bottom:16px;box-shadow:0 16px 40px rgba(0,0,0,.3);min-height:210px}
+.vc-top{display:flex;justify-content:space-between;margin-bottom:30px;position:relative;z-index:1}
+.vc-chip{width:44px;height:34px;border-radius:7px;
+background:linear-gradient(135deg,#d4af37,#f5e7a3,#d4af37)}
+.vc-network{font-size:18px;font-weight:900;font-style:italic}
+.vc-number{font-size:19px;font-weight:700;letter-spacing:2.5px;margin-bottom:20px;
+font-family:monospace;position:relative;z-index:1}
+.vc-bottom{display:flex;justify-content:space-between;position:relative;z-index:1}
+.vc-block small{display:block;font-size:8.5px;opacity:.6;margin-bottom:3px;text-transform:uppercase}
+.vc-block strong{font-size:13px;font-weight:700}
+.vc-cvv{text-align:left;position:relative;z-index:1}
+.vc-cvv small{display:block;font-size:8.5px;opacity:.6;margin-bottom:3px}
+.vc-cvv strong{font-size:15px;font-weight:800;letter-spacing:2px;font-family:monospace}
+
+.rate-row{display:flex;justify-content:space-between;align-items:center;
+padding:14px 16px;background:var(--card-bg);border-bottom:1px solid var(--line)}
+.rate-row:last-child{border-bottom:none}
+.rate-row span{font-size:13.5px;font-weight:600}
+.rate-row strong{font-size:14px;font-weight:800;color:var(--primary)}
+.rate-row small{display:block;font-size:11px;margin-top:2px;font-weight:700}
+.rate-row small.up{color:var(--success)}
+.rate-row small.down{color:var(--danger)}
+.rates-section{background:var(--card-bg);border-radius:18px;overflow:hidden;
+margin-bottom:14px;box-shadow:0 2px 10px rgba(60,30,120,.05)}
+.rates-section h3{font-size:14px;font-weight:800;padding:16px 16px 12px;
+border-bottom:1px solid var(--line);background:rgba(108,59,244,.03);color:var(--text)}
+
+.tab-buttons{display:flex;gap:6px;margin-bottom:16px;background:rgba(108,59,244,.06);
+padding:4px;border-radius:14px;overflow-x:auto;scrollbar-width:none}
+.tab-buttons::-webkit-scrollbar{display:none}
+.tab-btn{padding:9px 14px;border:none;background:transparent;font-family:inherit;
+font-size:12px;font-weight:700;cursor:pointer;border-radius:10px;color:var(--muted);
+white-space:nowrap;flex-shrink:0}
+.tab-btn.active{background:var(--bg-2);color:var(--primary);box-shadow:0 2px 8px rgba(60,30,120,.1)}
+
+.adhkar-item{background:var(--card-bg);border-radius:16px;padding:16px;margin-bottom:12px;
+box-shadow:0 2px 10px rgba(60,30,120,.05);cursor:pointer}
+.adhkar-item:active{transform:scale(.98)}
+.adhkar-item .text{font-size:14px;line-height:1.9;font-weight:600;color:var(--text);
+margin-bottom:8px;font-family:'Cairo',serif}
+.adhkar-item .count{font-size:11px;color:var(--primary);font-weight:800;
+background:rgba(108,59,244,.1);display:inline-block;padding:3px 10px;border-radius:10px}
+.adhkar-item.done{opacity:.5}
+
+.compass{width:220px;height:220px;margin:20px auto;position:relative}
+.compass-ring{width:100%;height:100%;border-radius:50%;
+background:radial-gradient(circle,var(--bg-2) 30%,var(--card-bg) 100%);
+border:4px solid var(--primary);position:relative}
+.compass-needle{position:absolute;top:50%;left:50%;width:6px;height:80px;
+background:linear-gradient(to bottom,var(--success) 50%,var(--danger) 50%);
+transform-origin:center center;border-radius:3px;
+transform:translate(-50%,-50%) rotate(0deg);transition:transform 1s ease}
+.compass-center{position:absolute;top:50%;left:50%;width:16px;height:16px;
+background:var(--primary);border-radius:50%;transform:translate(-50%,-50%);
+border:3px solid var(--bg-2);z-index:2}
+.compass-labels{position:absolute;inset:0;font-weight:800;color:var(--text)}
+.compass-labels span{position:absolute;font-size:14px}
+.compass-labels .n{top:8px;left:50%;transform:translateX(-50%);color:var(--danger)}
+.compass-labels .s{bottom:8px;left:50%;transform:translateX(-50%)}
+.compass-labels .e{right:8px;top:50%;transform:translateY(-50%)}
+.compass-labels .w{left:8px;top:50%;transform:translateY(-50%)}
+
+#paymentSuccess{position:absolute;inset:0;background:rgba(0,0,0,.7);
+display:none;place-items:center;z-index:500;padding:20px}
+#paymentSuccess.show{display:grid}
+.success-card{background:var(--bg-2);border-radius:24px;padding:32px 24px;
+text-align:center;max-width:340px;width:100%}
+.success-icon{width:100px;height:100px;margin:0 auto 20px;animation:pulseScale 1s infinite}
+.success-icon svg{width:100%;height:100%}
+.success-card h2{font-size:22px;font-weight:800;margin-bottom:8px;color:var(--success)}
+.success-card p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.success-details{background:rgba(108,59,244,.05);border-radius:16px;
+padding:16px;margin-bottom:20px;text-align:right}
+.success-details .row{display:flex;justify-content:space-between;padding:8px 0;
+font-size:12.5px;border-bottom:1px solid var(--line)}
+.success-details .row:last-child{border-bottom:none}
+.success-details .row span{color:var(--muted)}
+.success-details .row strong{color:var(--text);font-weight:700}
+.btn-ghost2{background:rgba(108,59,244,.08);color:var(--text);border:1px solid var(--line);
+width:100%;height:50px;border-radius:14px;font-family:inherit;font-size:14px;
+font-weight:700;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body><div class="phone">
+
+<!-- شريط DEMO -->
+<div class="demo-banner" id="demoBanner">نسخة تجريبية — الأرصدة وهمية</div>
+
+<!-- الشريط العلوي -->
+<div class="top-bar" id="topBar">
+  <button class="top-btn" onclick="toggleSideMenu()">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <button class="top-btn" onclick="goHome()">
+    <svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+  </button>
+</div>
+<div class="top-bar-center" id="topBarCenter">
+  <button class="home-btn-center" id="homeBtnCenter" onclick="goHome()">
+    <svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+  </button>
+  <button class="back-btn-center" id="backBtnCenter" onclick="goBack()">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+</div>
+
+<div class="adhkar-ticker" id="adhkarTicker"></div>
+
+<!-- القائمة الجانبية -->
+<div class="side-menu-overlay" id="sideMenuOverlay" onclick="toggleSideMenu()"></div>
+<aside class="side-menu" id="sideMenu">
+  <div class="side-menu-header">
+    <div class="side-menu-user">
+      <div class="avatar" id="sideAvatar">م</div>
+      <div>
+        <h3 id="sideUserName">حساب تجريبي</h3>
+        <p id="sideUserAcc">#DEMO1234</p>
+      </div>
+    </div>
+  </div>
+  <button class="side-menu-item active" data-tab="home" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    <span class="label">الرئيسية</span>
+  </button>
+  <button class="side-menu-item" data-tab="rates" onclick="switchTab('rates')">
+    <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+    <span class="label">الأسعار</span>
+  </button>
+  <button class="side-menu-item" data-tab="services" onclick="switchTab('services')">
+    <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <span class="label">الخدمات</span>
+  </button>
+  <button class="side-menu-item" data-tab="card" onclick="switchTab('card')">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>
+    <span class="label">بطاقاتي</span>
+  </button>
+  <button class="side-menu-item" data-tab="ops" onclick="switchTab('ops')">
+    <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+    <span class="label">العمليات</span>
+  </button>
+  <button class="side-menu-item" data-tab="adhkar" onclick="switchTab('adhkar')">
+    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+    <span class="label">الأذكار</span>
+  </button>
+  <div style="height:1px;background:var(--line);margin:12px 20px"></div>
+  <button class="side-menu-item" onclick="showTutorial()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v.01M11 12h1v4h1"/></svg>
+    <span class="label">📚 دليل الاستخدام</span>
+  </button>
+  <button class="side-menu-item" onclick="logout()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+    <span class="label">خروج من التجربة</span>
+  </button>
+</aside>
+
+<!-- شاشة الترحيب -->
+<section class="screen active" id="welcomeScreen">
+  <div class="demo-badge">🎮 نسخة تجريبية</div>
+  <div class="welcome-logo">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8b5cf6"/>
+          <stop offset="50%" stop-color="#6c3bf4"/>
+          <stop offset="100%" stop-color="#4c1d95"/>
+        </linearGradient>
+        <linearGradient id="ma" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee"/>
+          <stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="10" width="180" height="180" rx="50" fill="url(#mg)"/>
+      <path d="M 55 140 L 55 75 L 75 75 L 100 110 L 125 75 L 145 75 L 145 140 L 128 140 L 128 100 L 100 135 L 72 100 L 72 140 Z" fill="#fff"/>
+      <path d="M 130 55 L 165 55 L 165 90" stroke="url(#ma)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="155" cy="145" r="10" fill="url(#ma)"/>
+    </svg>
+  </div>
+  <h1>Medo Demo</h1>
+  <div class="subtitle"><div class="line"></div><p>جرّب كل الميزات مجاناً</p><div class="line"></div></div>
+  <button class="btn-demo" onclick="startDemo()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="#fff" stroke="none"/></svg>
+    ابدأ التجربة الآن
+  </button>
+  <button class="btn-ghost" onclick="showTutorial()">📚 ما هي النسخة التجريبية؟</button>
+</section>
+
+<!-- التطبيق -->
+<section class="screen" id="appScreen">
+  <div class="app-body">
+    <!-- الرئيسية -->
+    <div class="tab-page active" data-page="home">
+      <div class="hero">
+        <div class="hero-top">
+          <div class="user">
+            <div class="avatar" id="userAvatar">م</div>
+            <div class="user-info">
+              <small>🎮 حساب تجريبي</small>
+              <strong id="userName">حساب تجريبي</strong>
+              <div class="acc" id="userAcc">#DEMO1234</div>
+            </div>
+          </div>
+          <button class="top-btn" style="background:rgba(255,255,255,.14);width:44px;height:44px" onclick="toast('🎮 نسخة تجريبية')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v.01M11 12h1v4h1"/></svg>
+          </button>
+        </div>
+        <div class="currency-cards" id="currencyCards"></div>
+      </div>
+      <div class="content">
+        <div class="section-head"><h3>الخدمات السريعة</h3></div>
+        <div class="quick-grid">
+          <button class="quick" onclick="openSub('receiveScreen')"><div class="q-icon"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg></div><span>استلام</span></button>
+          <button class="quick" onclick="openSub('sendScreen')"><div class="q-icon"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div><span>إرسال</span></button>
+          <button class="quick" onclick="openSub('receiveQRScreen')"><div class="q-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3z"/></svg></div><span>QR</span></button>
+          <button class="quick" onclick="switchTab('services')"><div class="q-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><span>خدمات</span></button>
+        </div>
+        <div class="section-head"><h3>آخر العمليات</h3><a onclick="switchTab('ops')">عرض الكل</a></div>
+        <div class="tx-list" id="recentTx"></div>
+      </div>
+    </div>
+
+    <!-- الأسعار -->
+    <div class="tab-page" data-page="rates">
+      <div class="simple-header"><h2>الأسعار المباشرة</h2><p>عملات • ذهب • فضة</p></div>
+      <div class="content">
+        <div class="rates-section"><h3>💵 الدولار مقابل الجنيه السوداني</h3><div id="sudanDollarRate"></div></div>
+        <div class="rates-section"><h3>🌍 العملات العالمية</h3><div id="fiatRates"></div></div>
+        <div class="rates-section"><h3>🪙 العملات الرقمية</h3><div id="cryptoRates"></div></div>
+        <div class="rates-section"><h3>🥇 الذهب والفضة</h3><div id="metalsRates"></div></div>
+      </div>
+    </div>
+
+    <!-- الخدمات -->
+    <div class="tab-page" data-page="services">
+      <div class="simple-header"><h2>الخدمات</h2><p>كل ما تحتاجه</p></div>
+      <div class="content">
+        <div class="list-card">
+          <button class="list-item" onclick="openSub('interbankTransferScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/></svg></div><div class="li-text"><strong>تحويل بنكي</strong><small>عبر IBAN</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('mobileTopUpScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="li-text"><strong>شحن رصيد</strong><small>زين، سوداني، MTN</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('billPaymentScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div><div class="li-text"><strong>دفع الفواتير</strong><small>كهرباء، مياه، حكومة</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('cashyTransferScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>Cashy / MyCashi</strong><small>محافظ سودانية</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('paymobScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></div><div class="li-text"><strong>محافظ مصرية</strong><small>Vodafone Cash</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('binanceScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="li-text"><strong>Binance Pay</strong><small>USDT، BTC، ETH</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('subscriptionsScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="li-text"><strong>الاشتراكات</strong><small>Canva، Microsoft، Bigo</small></div><span class="li-arrow">‹</span></button>
+          <button class="list-item" onclick="openSub('earningsScreen')"><div class="li-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><div class="li-text"><strong>أرباح TikTok / Facebook</strong><small>ربط الحساب</small></div><span class="li-arrow">‹</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- بطاقاتي -->
+    <div class="tab-page" data-page="card">
+      <div class="simple-header"><h2>بطاقاتي</h2><p>Visa / Mastercard تجريبية</p></div>
+      <div class="content">
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <button class="btn-primary" style="margin:0" onclick="issueCard('visa')">+ Visa</button>
+          <button class="btn-primary" style="margin:0;background:linear-gradient(135deg,#eb001b,#f79e1b)" onclick="issueCard('mastercard')">+ Mastercard</button>
+        </div>
+        <div id="cardsContainer"></div>
+      </div>
+    </div>
+
+    <!-- العمليات -->
+    <div class="tab-page" data-page="ops">
+      <div class="simple-header"><h2>سجل العمليات</h2><p>جميع معاملاتك</p></div>
+      <div class="content">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="showOpsTab('all',this)">الكل</button>
+          <button class="tab-btn" onclick="showOpsTab('sent',this)">المرسلة</button>
+          <button class="tab-btn" onclick="showOpsTab('received',this)">المستلمة</button>
+        </div>
+        <div class="tx-list" id="allTx"></div>
+      </div>
+    </div>
+
+    <!-- الأذكار -->
+    <div class="tab-page" data-page="adhkar">
+      <div class="simple-header"><h2>الأذكار والأدعية</h2><p>حصن المسلم</p></div>
+      <div class="content">
+        <div class="tab-buttons" id="adhkarCategories">
+          <button class="tab-btn active" onclick="showAdhkarTab('morning',this)">🌅 الصباح</button>
+          <button class="tab-btn" onclick="showAdhkarTab('evening',this)">🌙 المساء</button>
+          <button class="tab-btn" onclick="showAdhkarTab('sleep',this)">😴 النوم</button>
+          <button class="tab-btn" onclick="showAdhkarTab('wake',this)">☀️ الاستيقاظ</button>
+          <button class="tab-btn" onclick="showAdhkarTab('leavingHome',this)">🚪 الخروج</button>
+          <button class="tab-btn" onclick="showAdhkarTab('market',this)">🛒 السوق</button>
+          <button class="tab-btn" onclick="showAdhkarTab('enteringHome',this)">🏠 المنزل</button>
+          <button class="tab-btn" onclick="showAdhkarTab('tawakkul',this)">🤲 التوكل</button>
+          <button class="tab-btn" onclick="showAdhkarTab('provision',this)">💰 الرزق</button>
+        </div>
+        <div id="adhkarList"></div>
+        <div class="section-head" style="margin-top:20px"><h3>🕋 اتجاه القبلة</h3></div>
+        <div class="receive-option">
+          <div class="compass">
+            <div class="compass-ring">
+              <div class="compass-labels"><span class="n">N</span><span class="s">S</span><span class="e">E</span><span class="w">W</span></div>
+              <div class="compass-needle" id="qiblaNeedle"></div>
+              <div class="compass-center"></div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:12px" id="qiblaInfo">اضغط للحصول على اتجاه القبلة</div>
+          <button class="btn-primary" onclick="getQibla()">📍 تحديد القبلة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg><span>الرئيسية</span></button>
+    <button class="nav-item" data-tab="rates" onclick="switchTab('rates')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span>الأسعار</span></button>
+    <button class="nav-item" data-tab="adhkar" onclick="switchTab('adhkar')"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg><span>الأذكار</span></button>
+    <button class="nav-item" data-tab="services" onclick="switchTab('services')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span>الخدمات</span></button>
+    <button class="nav-item" data-tab="ops" onclick="switchTab('ops')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span>العمليات</span></button>
+    <button class="nav-item" data-tab="card" onclick="switchTab('card')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg><span>بطاقتي</span></button>
+  </nav>
+</section>
+
+<!-- شاشات فرعية -->
+<section class="screen" id="receiveScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>استلام</h2></div>
+  <div class="sub-body">
+    <div class="receive-option"><h4>🆔 رقم حسابك التجريبي</h4>
+      <div class="ro-field"><span id="recvAccountNumber">DEMO0000</span><button onclick="copyText(document.getElementById('recvAccountNumber').textContent)">نسخ</button></div>
+    </div>
+    <div class="receive-option"><h4>🇸🇩 IBAN تجريبي</h4>
+      <div class="ro-field"><span id="recvIBAN">SD00DEMO...</span><button onclick="copyText(document.getElementById('recvIBAN').textContent)">نسخ</button></div>
+    </div>
+    <div class="receive-option"><h4>₮ محفظة USDT</h4>
+      <div class="ro-field"><span id="cryptoAddress" style="font-size:10.5px">...</span><button onclick="copyText(document.getElementById('cryptoAddress').textContent)">نسخ</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="receiveQRScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>رمز QR</h2></div>
+  <div class="sub-body" style="text-align:center">
+    <div class="qr-box" id="qrBox"></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">اعرض هذا الرمز للدفع</p>
+  </div>
+</section>
+
+<section class="screen" id="sendScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>إرسال أموال</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>رقم الحساب</label>
+      <input type="text" id="sendAccountNumber" placeholder="00002" maxlength="5" style="direction:ltr;text-align:left;font-family:monospace;font-size:18px;letter-spacing:4px">
+      <div id="recipientInfo" style="display:none;margin-top:8px;font-size:12px;color:var(--success);font-weight:700"></div>
+    </div>
+    <div class="field"><label>العملة</label>
+      <select id="sendCurrency">
+        <option value="SDG">🇸🇩 جنيه سوداني</option>
+        <option value="USD">🇺🇸 دولار</option>
+        <option value="EUR">🇪🇺 يورو</option>
+        <option value="USDT">₮ USDT</option>
+        <option value="EGP">🇪🇬 جنيه مصري</option>
+      </select></div>
+    <div class="field"><label>المبلغ</label><input type="number" id="sendAmount" placeholder="0.00"></div>
+    <div class="field"><label>ملاحظة</label><input type="text" id="sendNote" placeholder="اختياري"></div>
+    <button class="btn-primary" onclick="handleSend()">تأكيد الإرسال</button>
+  </div>
+</section>
+
+<section class="screen" id="interbankTransferScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>تحويل بنكي</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>إلى IBAN</label><input type="text" id="interbankToIBAN" placeholder="SD2129010501234001" dir="ltr"></div>
+    <div class="field"><label>المبلغ (ج.س)</label><input type="number" id="interbankAmount" placeholder="0.00"></div>
+    <button class="btn-primary" onclick="handleInterbankTransfer()">تنفيذ</button>
+  </div>
+</section>
+
+<section class="screen" id="mobileTopUpScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>شحن رصيد</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>الشبكة</label>
+      <select id="topupNetwork"><option value="Zain">زين</option><option value="Sudani">سوداني</option><option value="MTN">MTN</option><option value="Canar">كنار</option></select></div>
+    <div class="field"><label>رقم الهاتف</label><input type="tel" id="topupPhone" placeholder="0912345678" dir="ltr"></div>
+    <div class="field"><label>المبلغ (ج.س)</label><input type="number" id="topupAmount" placeholder="0.00"></div>
+    <button class="btn-primary" onclick="handleMobileTopUp()">شحن</button>
+  </div>
+</section>
+
+<section class="screen" id="billPaymentScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>دفع الفواتير</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>نوع الخدمة</label>
+      <select id="billServiceType">
+        <option value="كهرباء">⚡ كهرباء</option><option value="مياه">💧 مياه</option>
+        <option value="رسوم جامعية">🎓 رسوم جامعية</option><option value="ضرائب">💰 ضرائب</option>
+      </select></div>
+    <div class="field"><label>رقم الفاتورة</label><input type="text" id="billNumber" dir="ltr"></div>
+    <button class="btn-primary" onclick="inquireBill()" style="background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#1a1626;margin-bottom:10px">🔍 استعلام</button>
+    <div id="billInfo" style="display:none;background:var(--card-bg);border-radius:14px;padding:14px;margin-bottom:14px;font-size:13px"></div>
+    <div class="field"><label>المبلغ (ج.س)</label><input type="number" id="billAmount" placeholder="0.00"></div>
+    <button class="btn-primary" onclick="payBill()">دفع</button>
+  </div>
+</section>
+
+<section class="screen" id="cashyTransferScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>Cashy / MyCashi</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>المحفظة</label>
+      <select id="cashyType"><option value="CASHY">Cashy Mobile</option><option value="MYCASHI">MyCashi</option><option value="CASHY_LITE">Cashy Lite</option></select></div>
+    <div class="field"><label>رقم الهاتف</label><input type="tel" id="cashyPhone" placeholder="0912345678" dir="ltr"></div>
+    <div class="field"><label>المبلغ (ج.س)</label><input type="number" id="cashyAmount" placeholder="0.00"></div>
+    <button class="btn-primary" onclick="handleCashyTransfer()">تحويل</button>
+  </div>
+</section>
+
+<section class="screen" id="paymobScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>محافظ مصرية</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>المحفظة</label>
+      <select id="paymobWallet"><option value="vodafone">🔴 Vodafone Cash</option><option value="etisalat">🟢 Etisalat</option><option value="orange">🟠 Orange</option><option value="we">🔵 WE Pay</option></select></div>
+    <div class="field"><label>رقم الهاتف</label><input type="tel" id="paymobPhone" placeholder="01012345678" dir="ltr"></div>
+    <div class="field"><label>المبلغ (ج.م)</label><input type="number" id="paymobAmount" placeholder="0.00"></div>
+    <button class="btn-primary" onclick="handlePaymobTransfer()">تحويل</button>
+  </div>
+</section>
+
+<section class="screen" id="binanceScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>Binance Pay</h2></div>
+  <div class="sub-body">
+    <div class="field"><label>الطريقة</label>
+      <select id="binanceMode"><option value="transfer">📤 تحويل</option><option value="create">📥 استلام</option></select></div>
+    <div class="field"><label>Binance Pay ID</label><input type="text" id="binanceTarget" placeholder="123456789" dir="ltr"></div>
+    <div class="field"><label>المبلغ</label><input type="number" id="binanceAmount" placeholder="0.00"></div>
+    <div class="field"><label>العملة</label>
+      <select id="binanceCurrency"><option value="USDT">USDT</option><option value="BTC">BTC</option><option value="ETH">ETH</option><option value="BNB">BNB</option></select></div>
+    <button class="btn-primary" onclick="handleBinance()">تنفيذ</button>
+  </div>
+</section>
+
+<section class="screen" id="subscriptionsScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>الاشتراكات</h2></div>
+  <div class="sub-body">
+    <div class="section-head"><h3>🎮 بطاقات الألعاب</h3></div>
+    <div class="list-card">
+      <button class="list-item" onclick="buyCard('playstation','PlayStation',25000)"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>PlayStation</strong><small>25,000 ج.س</small></div><span class="li-arrow">‹</span></button>
+      <button class="list-item" onclick="buyCard('xbox','Xbox',25000)"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>Xbox</strong><small>25,000 ج.س</small></div><span class="li-arrow">‹</span></button>
+      <button class="list-item" onclick="buyCard('steam','Steam',20000)"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>Steam</strong><small>20,000 ج.س</small></div><span class="li-arrow">‹</span></button>
+      <button class="list-item" onclick="buyCard('bigo','Bigo Live',20000)"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>Bigo Live</strong><small>20,000 ج.س</small></div><span class="li-arrow">‹</span></button>
+      <button class="list-item" onclick="buyCard('tiktok','TikTok Coins',20000)"><div class="li-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="li-text"><strong>TikTok Coins</strong><small>20,000 ج.س</small></div><span class="li-arrow">‹</span></button>
+    </div>
+    <div class="section-head"><h3>💼 برامج</h3></div>
+    <div class="list-card">
+      <button class="list-item" onclick="activateSub('canva')"><div class="li-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/></svg></div><div class="li-text"><strong>Canva Pro</strong><small>تفعيل</small></div><span class="li-arrow">‹</span></button>
+      <button class="list-item" onclick="activateSub('microsoft')"><div class="li-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg></div><div class="li-text"><strong>Microsoft 365</strong><small>تفعيل</small></div><span class="li-arrow">‹</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="earningsScreen">
+  <div class="sub-header"><button onclick="closeSub()"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button><h2>أرباح المحتوى</h2></div>
+  <div class="sub-body">
+    <div class="receive-option"><h4>🎵 TikTok</h4>
+      <div class="field" style="margin-top:10px"><input type="text" id="tiktokAccount" placeholder="user@example.com" style="direction:ltr;text-align:left"></div>
+      <button class="btn-primary" onclick="linkEarnings('tiktok')">ربط</button>
+      <div id="tiktokEarnings" style="margin-top:12px"></div>
+    </div>
+    <div class="receive-option"><h4>📘 Facebook</h4>
+      <div class="field" style="margin-top:10px"><input type="text" id="facebookAccount" placeholder="user@example.com" style="direction:ltr;text-align:left"></div>
+      <button class="btn-primary" onclick="linkEarnings('facebook')" style="background:linear-gradient(135deg,#1877f2,#0c5fd1)">ربط</button>
+      <div id="facebookEarnings" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Tutorial Modal -->
+<div class="tutorial-modal" id="tutorialModal">
+  <div class="tutorial-card">
+    <div class="tutorial-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="#fff" stroke="none"/></svg>
+    </div>
+    <h2>🎮 مرحباً في التجربة!</h2>
+    <p>حساب تجريبي بمبالغ وهمية لتجربة كل ميزات Medo</p>
+
+    <div class="tutorial-balances" id="tutorialBalances"></div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-num">1</div>
+      <div class="tutorial-step-text">
+        <strong>💳 بطاقات Visa/Mastercard</strong>
+        أنشئ بطاقة افتراضية مجاناً وجرّب الدفع بها من "بطاقتي"
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-num">2</div>
+      <div class="tutorial-step-text">
+        <strong>💰 تحويل الأموال</strong>
+        حوّل بين الحسابات. جرّب إرسال أي مبلغ تجريبي
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-num">3</div>
+      <div class="tutorial-step-text">
+        <strong>🪙 العملات الرقمية</strong>
+        من "الخدمات" → Binance Pay. جرّب USDT/BTC/ETH
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-num">4</div>
+      <div class="tutorial-step-text">
+        <strong>📱 شحن الرصيد والدفع</strong>
+        كل خدمات الشحن والدفع متاحة — جرّب بحرية!
+      </div>
+    </div>
+
+    <div class="tutorial-actions">
+      <button class="btn-learn-more" onclick="closeTutorial()">لاحقاً</button>
+      <button class="btn-start" onclick="closeTutorial()">ابدأ التجربة</button>
+    </div>
+  </div>
+</div>
+
+<div id="paymentSuccess">
+  <div class="success-card">
+    <div class="success-icon">
+      <svg viewBox="0 0 100 100"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#047857"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="45" fill="url(#sg)" opacity=".15"/>
+        <circle cx="50" cy="50" r="38" fill="url(#sg)"/>
+        <path d="M 30 50 L 45 65 L 72 38" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>✅ تم التحويل</h2>
+    <p>هذه عملية تجريبية</p>
+    <div class="success-details">
+      <div class="row"><span>المبلغ</span><strong id="succAmount">—</strong></div>
+      <div class="row"><span>المستلم</span><strong id="succTo">—</strong></div>
+      <div class="row"><span>المرجع</span><strong id="succRef">—</strong></div>
+      <div class="row"><span>التاريخ</span><strong id="succDate">—</strong></div>
+    </div>
+    <button class="btn-primary" onclick="closePaymentSuccess()">إغلاق</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+</div><script>
+// ============================================
+// Medo DEMO — JavaScript
+// يتصل بـ port 3001
+// ============================================
+const API = window.location.origin.includes('3001')
+  ? window.location.origin + '/api'
+  : 'http://localhost:3001/api';
+
+let currentUser = null, authToken = null;
+let currentSub = null, adhkarData = [], adhkarTime = 'morning';
+let tickerIndex = 0, tickerTimer = null;
+
+const store = {
+  save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  remove(k) { try { localStorage.removeItem(k); } catch(e){} }
+};
+
+// ============ Device Info ============
+function getDeviceInfo() {
+  const ua = navigator.userAgent;
+  let name = 'جهاز تجريبي', os = 'غير معروف', browser = 'غير معروف';
+  if (/Android/i.test(ua)) {
+    os = 'Android';
+    const m = ua.match(/;\s([^;)]+)\sBuild/);
+    name = m ? m[1].trim() : 'Android Device';
+  } else if (/iPhone|iPad/i.test(ua)) { os = 'iOS'; name = 'iPhone'; }
+  else if (/Windows/i.test(ua)) { os = 'Windows'; name = 'Windows PC'; }
+  else if (/Mac/i.test(ua)) { os = 'macOS'; name = 'Mac'; }
+  else if (/Linux/i.test(ua)) { os = 'Linux'; name = 'Linux Device'; }
+
+  if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+  else if (/Firefox/i.test(ua)) browser = 'Firefox';
+  else if (/Safari/i.test(ua)) browser = 'Safari';
+  else if (/Edg/i.test(ua)) browser = 'Edge';
+
+  let deviceId = store.get('demo_device_id', null);
+  if (!deviceId) {
+    deviceId = 'demo_' + Math.random().toString(36).substring(2, 15);
+    store.save('demo_device_id', deviceId);
+  }
+  return { id: deviceId, name, os, browser };
+}
+
+// ============ UI ============
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  const topBar = document.getElementById('topBar');
+  const topBarCenter = document.getElementById('topBarCenter');
+  if (id === 'appScreen') {
+    if (topBar) topBar.classList.add('show');
+    if (topBarCenter) topBarCenter.classList.add('show');
+    updateTopBar();
+  } else {
+    if (topBar) topBar.classList.remove('show');
+    if (topBarCenter) topBarCenter.classList.remove('show');
+  }
+}
+function updateTopBar(){
+  const homeBtn = document.getElementById('homeBtnCenter');
+  const backBtn = document.getElementById('backBtnCenter');
+  const isSubOpen = currentSub !== null;
+  if (isSubOpen) {
+    if (homeBtn) homeBtn.classList.remove('show');
+    if (backBtn) backBtn.classList.add('show');
+  } else {
+    if (homeBtn) homeBtn.classList.add('show');
+    if (backBtn) backBtn.classList.remove('show');
+  }
+}
+function showLoading(s){ document.getElementById('loadingOverlay').classList.toggle('show', s); }
+let toastTimer;
+function toast(msg, duration = 3000){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+function copyText(text){
+  navigator.clipboard?.writeText(text).then(() => toast('✅ تم النسخ')).catch(() => toast('انسخ يدوياً'));
+}
+
+async function api(path, options = {}){
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  let res;
+  try { res = await fetch(`${API}${path}`, { ...options, headers }); }
+  catch (err) { throw new Error('NETWORK'); }
+  let data = {};
+  try { data = await res.json(); } catch(_) {}
+  if (!res.ok) {
+    const error = new Error(data.error || 'خطأ');
+    error.status = res.status; error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+// ============ Top Bar ============
+function goHome(){
+  if (currentSub) closeSub();
+  switchTab('home');
+}
+function goBack(){ if (currentSub) closeSub(); }
+function toggleSideMenu(){
+  const menu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('sideMenuOverlay');
+  const isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('show', !isOpen);
+}
+
+// ============ Adhkar Ticker ============
+const tickerMessages = [
+  'أستغفر الله العظيم وأتوب إليه',
+  'سبحان الله وبحمده، سبحان الله العظيم',
+  'الله أكبر كبيراً',
+  'الحمد لله على كل حال',
+  'اللهم صلِّ وسلم وبارك على سيدنا محمد وعلى آله وصحبه أجمعين',
+  'لا حول ولا قوة إلا بالله',
+  'لا إله إلا الله وحده لا شريك له',
+  'سبحان الله والحمد لله ولا إله إلا الله والله أكبر'
+];
+function startAdhkarTicker(){
+  const ticker = document.getElementById('adhkarTicker');
+  if (!ticker) return;
+  function showNext(){
+    if (document.querySelector('#appScreen.active')) {
+      ticker.textContent = tickerMessages[tickerIndex];
+      ticker.classList.add('show');
+      tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+      setTimeout(() => ticker.classList.remove('show'), 6000);
+    }
+  }
+  showNext();
+  if (tickerTimer) clearInterval(tickerTimer);
+  tickerTimer = setInterval(showNext, 15000);
+}
+
+// ============ Demo Login ============
+async function startDemo(){
+  const deviceInfo = getDeviceInfo();
+  showLoading(true);
+  try {
+    const data = await api('/demo/login', {
+      method: 'POST',
+      body: JSON.stringify({ deviceInfo })
+    });
+    authToken = data.token;
+    currentUser = data.user;
+    currentUser.is_demo = true;
+    store.save('demo_token', data.token);
+    store.save('demo_user', data.user);
+
+    await enterApp();
+    showTutorial();
+    toast('🎮 مرحباً في النسخة التجريبية!');
+  } catch(err){
+    if (err.message === 'NETWORK') {
+      toast('❌ تعذر الاتصال — تأكد أن server-demo.js يعمل', 5000);
+    } else {
+      toast(err.message);
+    }
+  } finally { showLoading(false); }
+}
+
+function showTutorial(){
+  const balances = [
+    { flag: '🇺🇸', code: 'USD', amt: '10,000' },
+    { flag: '🇪🇺', code: 'EUR', amt: '8,500' },
+    { flag: '🇸🇩', code: 'SDG', amt: '5,000,000' },
+    { flag: '₮', code: 'USDT', amt: '5,000' },
+    { flag: '🇪🇬', code: 'EGP', amt: '50,000' }
+  ];
+  const container = document.getElementById('tutorialBalances');
+  if (container) {
+    container.innerHTML = balances.map(b => `
+      <div class="tutorial-balance">
+        <span class="flag">${b.flag}</span>
+        <div class="code">${b.code}</div>
+        <div class="amt">${b.amt}</div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('tutorialModal').classList.add('show');
+}
+function closeTutorial(){
+  document.getElementById('tutorialModal').classList.remove('show');
+}
+
+async function enterApp(){
+  showScreen('appScreen');
+  const u = currentUser;
+  document.getElementById('userName').textContent = u.full_name || 'حساب تجريبي';
+  document.getElementById('userAcc').textContent = '#' + (u.accountNumber || 'DEMO0000');
+  document.getElementById('sideUserName').textContent = u.full_name || 'حساب تجريبي';
+  document.getElementById('sideUserAcc').textContent = '#' + (u.accountNumber || 'DEMO0000');
+  document.getElementById('userAvatar').textContent = (u.full_name || 'م')[0];
+  document.getElementById('sideAvatar').textContent = (u.full_name || 'م')[0];
+
+  await Promise.all([loadBalances(), loadTransactions(), loadAdhkar()]);
+  startAdhkarTicker();
+}
+
+async function logout(){
+  authToken = null; currentUser = null;
+  store.remove('demo_token'); store.remove('demo_user');
+  if (tickerTimer) clearInterval(tickerTimer);
+  showScreen('welcomeScreen');
+  switchTab('home');
+}
+
+// ============ Tabs ============
+function switchTab(tab){
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.toggle('active', p.dataset.page === tab));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.side-menu-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const body = document.querySelector('.app-body');
+  if (body) body.scrollTop = 0;
+  if (tab === 'rates') loadRates();
+  if (tab === 'ops') loadTransactions();
+  if (tab === 'adhkar') loadAdhkar();
+  if (tab === 'card') loadCards();
+  document.getElementById('sideMenu').classList.remove('open');
+  document.getElementById('sideMenuOverlay').classList.remove('show');
+}
+
+// ============ Balances ============
+async function loadBalances(){
+  try {
+    const balances = await api('/wallet/balances');
+    renderBalances(balances);
+  } catch(err){ console.error(err); }
+}
+function renderBalances(balances){
+  const meta = {
+    USD:{flag:'🇺🇸',label:'دولار'}, EUR:{flag:'🇪🇺',label:'يورو'},
+    SDG:{flag:'🇸🇩',label:'جنيه سوداني'}, USDT:{flag:'₮',label:'تيثر'},
+    EGP:{flag:'🇪🇬',label:'جنيه مصري'}
+  };
+  const c = document.getElementById('currencyCards');
+  if (!balances.length) { c.innerHTML = ''; return; }
+  c.innerHTML = balances.map(b => {
+    const m = meta[b.currency] || { flag: '💱', label: b.currency };
+    return `<div class="cc"><div class="cc-head"><span class="cc-flag">${m.flag}</span>
+      <span class="cc-code">${b.currency}</span></div>
+      <div class="cc-amount">${parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+      <div class="cc-label">${m.label}</div></div>`;
+  }).join('');
+}
+
+// ============ Transactions ============
+async function loadTransactions(){
+  try {
+    const txs = await api('/wallet/transactions');
+    renderTransactions(txs);
+  } catch(err){ console.error(err); }
+}
+function renderTransactions(txs){
+  const empty = '<p style="color:var(--muted);text-align:center;padding:20px">لا توجد عمليات</p>';
+  const html = txs.length ? txs.map(tx => {
+    const isIn = tx.type === 'receive';
+    return `<div class="tx" onclick='showTxDetails(${JSON.stringify(tx).replace(/'/g, "&#39;")})'>
+      <div class="tx-icon ${isIn?'in':'out'}">
+        <svg viewBox="0 0 24 24">${isIn ? '<path d="M12 5v14"/><path d="M5 12l7 7 7-7"/>' : '<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>'}</svg>
+      </div>
+      <div class="tx-info"><strong>${tx.description || 'عملية'}</strong>
+        <small>${new Date(tx.created_at).toLocaleString('ar-EG')}</small></div>
+      <div class="tx-amount ${isIn?'in':'out'}">${isIn?'+':'-'} ${parseFloat(tx.amount).toLocaleString()} ${tx.currency}</div>
+    </div>`;
+  }).join('') : empty;
+  document.getElementById('recentTx').innerHTML = html;
+  document.getElementById('allTx').innerHTML = html;
+}
+async function showOpsTab(tab, el){
+  document.querySelectorAll('#ops .tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  showLoading(true);
+  try {
+    let url = '/wallet/transactions';
+    if (tab === 'sent') url = '/wallet/sent';
+    else if (tab === 'received') url = '/wallet/received';
+    const txs = await api(url);
+    const list = document.getElementById('allTx');
+    const empty = '<p style="color:var(--muted);text-align:center;padding:20px">لا توجد عمليات</p>';
+    list.innerHTML = txs.length ? txs.map(tx => {
+      const isIn = tx.type === 'receive';
+      return `<div class="tx" onclick='showTxDetails(${JSON.stringify(tx).replace(/'/g, "&#39;")})'>
+        <div class="tx-icon ${isIn?'in':'out'}">
+          <svg viewBox="0 0 24 24">${isIn ? '<path d="M12 5v14"/><path d="M5 12l7 7 7-7"/>' : '<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>'}</svg>
+        </div>
+        <div class="tx-info"><strong>${tx.description || 'عملية'}</strong>
+          <small>${new Date(tx.created_at).toLocaleString('ar-EG')}</small></div>
+        <div class="tx-amount ${isIn?'in':'out'}">${isIn?'+':'-'} ${parseFloat(tx.amount).toLocaleString()} ${tx.currency}</div>
+      </div>`;
+    }).join('') : empty;
+  } catch(err){ console.error(err); }
+  finally { showLoading(false); }
+}
+function showTxDetails(tx){
+  const isIn = tx.type === 'receive';
+  let msg = `${isIn ? '📥 استلام' : '📤 إرسال'}\n\nالمبلغ: ${tx.amount} ${tx.currency}\n`;
+  if (tx.reference) msg += `المرجع: ${tx.reference}\n`;
+  msg += `التاريخ: ${new Date(tx.created_at).toLocaleString('ar-EG')}\n\n🎮 عملية تجريبية`;
+  alert(msg);
+}
+
+// ============ Rates ============
+async function loadRates(){
+  try {
+    const rates = await api('/rates/all');
+    const sd = rates.sudanDollar;
+    document.getElementById('sudanDollarRate').innerHTML = `
+      <div class="rate-row"><span>💵 سعر الشراء</span><strong>${Math.round(sd.buy).toLocaleString()} ج.س</strong></div>
+      <div class="rate-row"><span>💵 سعر البيع</span><strong>${Math.round(sd.sell).toLocaleString()} ج.س</strong></div>
+      <div class="rate-row"><span>🏛️ الرسمي</span><strong>${Math.round(sd.official).toLocaleString()} ج.س</strong></div>`;
+    const fiat = rates.fiat || {};
+    const currencies = [
+      { code:'SDG',name:'جنيه سوداني',flag:'🇸🇩' },{ code:'EGP',name:'جنيه مصري',flag:'🇪🇬' },
+      { code:'SAR',name:'ريال سعودي',flag:'🇸🇦' },{ code:'AED',name:'درهم إماراتي',flag:'🇦🇪' },
+      { code:'EUR',name:'يورو',flag:'🇪🇺' },{ code:'GBP',name:'جنيه إسترليني',flag:'🇬🇧' }
+    ];
+    document.getElementById('fiatRates').innerHTML = currencies.map(c => {
+      const rate = fiat[c.code] ? (1 / fiat[c.code]).toFixed(4) : '—';
+      return `<div class="rate-row"><span>${c.flag} ${c.name}</span><strong>1 USD = ${rate} ${c.code}</strong></div>`;
+    }).join('');
+    const crypto = rates.crypto || {};
+    const coins = [
+      { id:'bitcoin',name:'Bitcoin',symbol:'BTC',icon:'₿' },
+      { id:'ethereum',name:'Ethereum',symbol:'ETH',icon:'Ξ' },
+      { id:'tether',name:'Tether',symbol:'USDT',icon:'₮' },
+      { id:'binancecoin',name:'BNB',symbol:'BNB',icon:'B' }
+    ];
+    document.getElementById('cryptoRates').innerHTML = coins.map(c => {
+      const d = crypto[c.id]; if (!d) return '';
+      const ch = d.usd_24h_change || 0;
+      const cls = ch >= 0 ? 'up' : 'down';
+      const ic = ch >= 0 ? '▲' : '▼';
+      return `<div class="rate-row"><span>${c.icon} ${c.name} (${c.symbol})</span>
+        <div style="text-align:left"><strong>$${d.usd.toLocaleString()}</strong>
+        <small class="${cls}">${ic} ${Math.abs(ch).toFixed(2)}%</small></div></div>`;
+    }).join('');
+    const m = rates.goldSilver || {};
+    if (m.gold) {
+      document.getElementById('metalsRates').innerHTML = `
+        <div class="rate-row"><span>🥇 ذهب عيار 24</span><strong>${Math.round(m.gold.perGram24k).toLocaleString()} ج.س/جم</strong></div>
+        <div class="rate-row"><span>🥇 ذهب عيار 21</span><strong>${Math.round(m.gold.perGram21k).toLocaleString()} ج.س/جم</strong></div>
+        <div class="rate-row"><span>🥇 ذهب عيار 18</span><strong>${Math.round(m.gold.perGram18k).toLocaleString()} ج.س/جم</strong></div>
+        <div class="rate-row"><span>🥈 فضة</span><strong>${Math.round(m.silver.perGram).toLocaleString()} ج.س/جم</strong></div>`;
+    }
+  } catch(err){ console.error(err); }
+}
+
+// ============ Adhkar ============
+async function loadAdhkar(){
+  try {
+    const data = await api('/adhkar/' + adhkarTime);
+    adhkarData = data.items.map(a => ({ ...a, remaining: a.count }));
+    renderAdhkar();
+  } catch(err){ console.error(err); }
+}
+function renderAdhkar(){
+  const list = document.getElementById('adhkarList');
+  if (!adhkarData.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا توجد أذكار</p>';
+    return;
+  }
+  list.innerHTML = adhkarData.map((a, i) => `
+    <div class="adhkar-item" id="adhkar_${i}" onclick="countAdhkar(${i})">
+      <div class="text">${a.text}</div>
+      <div class="count">التكرار: <span id="adhkarCount_${i}">${a.remaining}</span> مرة</div>
+    </div>`).join('');
+}
+function countAdhkar(i){
+  const item = adhkarData[i];
+  if (!item || item.remaining <= 0) return;
+  item.remaining--;
+  document.getElementById('adhkarCount_' + i).textContent = item.remaining;
+  if (navigator.vibrate) navigator.vibrate(30);
+  if (item.remaining === 0) {
+    document.getElementById('adhkar_' + i).classList.add('done');
+    toast('✅ أحسنت!');
+  }
+}
+function showAdhkarTab(cat, el){
+  document.querySelectorAll('#adhkarCategories .tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  adhkarTime = cat;
+  loadAdhkar();
+}
+
+// ============ Qibla ============
+async function getQibla(){
+  showLoading(true);
+  try {
+    let lat, lng;
+    if (navigator.geolocation) {
+      await new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { lat = pos.coords.latitude; lng = pos.coords.longitude; resolve(); },
+          async () => {
+            try {
+              const geo = await fetch('http://ip-api.com/json/').then(r => r.json());
+              lat = geo.lat; lng = geo.lon;
+            } catch(e){}
+            resolve();
+          }, { timeout: 5000 }
+        );
+      });
+    }
+    if (!lat || !lng) {
+      try {
+        const geo = await fetch('http://ip-api.com/json/').then(r => r.json());
+        lat = geo.lat; lng = geo.lon;
+      } catch(e){ toast('تعذر تحديد الموقع'); return; }
+    }
+    const data = await api('/qibla', { method: 'POST', body: JSON.stringify({ lat, lng }) });
+    document.getElementById('qiblaNeedle').style.transform = `translate(-50%,-50%) rotate(${data.bearing}deg)`;
+    document.getElementById('qiblaInfo').innerHTML = `🕋 اتجاه القبلة: <b>${data.bearing}°</b><br>المسافة: <b>${data.distance} كم</b>`;
+  } catch(err){ toast('تعذر تحديد الموقع'); }
+  finally { showLoading(false); }
+}
+
+// ============ Sub Screens ============
+function openSub(id){
+  currentSub = id;
+  document.getElementById(id).classList.add('active');
+  updateTopBar();
+  if (id === 'receiveScreen') {
+    if (currentUser?.accountNumber) document.getElementById('recvAccountNumber').textContent = currentUser.accountNumber;
+    if (currentUser?.iban) document.getElementById('recvIBAN').textContent = currentUser.iban;
+    if (currentUser?.wallet_address) document.getElementById('cryptoAddress').textContent = currentUser.wallet_address;
+  }
+  if (id === 'receiveQRScreen') generateQR();
+}
+function closeSub(){
+  if (currentSub) document.getElementById(currentSub).classList.remove('active');
+  currentSub = null;
+  updateTopBar();
+}
+
+// ============ QR ============
+function generateQR(){
+  const box = document.getElementById('qrBox');
+  const text = `medo-demo://pay?acc=${currentUser?.accountNumber || ''}`;
+  box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(text)}&bgcolor=ffffff&color=f59e0b" alt="QR" style="width:220px;height:220px;border-radius:8px">`;
+}
+
+// ============ Send ============
+async function handleSend(){
+  const toAccountNumber = document.getElementById('sendAccountNumber').value.trim().padStart(5, '0');
+  const currency = document.getElementById('sendCurrency').value;
+  const amount = parseFloat(document.getElementById('sendAmount').value);
+  const note = document.getElementById('sendNote').value.trim();
+  if (!toAccountNumber || !amount) { toast('أدخل رقم الحساب والمبلغ'); return; }
+  if (amount <= 0) { toast('المبلغ غير صحيح'); return; }
+  showLoading(true);
+  try {
+    const data = await api('/send/by-account', {
+      method: 'POST',
+      body: JSON.stringify({ toAccountNumber, currency, amount, note })
+    });
+    closeSub();
+    showPaymentSuccess(data, amount, currency);
+    await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){
+    toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message);
+  } finally { showLoading(false); }
+}
+
+document.addEventListener('input', async (e) => {
+  if (e.target.id === 'sendAccountNumber' && e.target.value.length >= 3) {
+    const info = document.getElementById('recipientInfo');
+    if (info) {
+      info.style.display = 'block';
+      info.style.color = 'var(--success)';
+      info.textContent = '✅ مستخدم تجريبي (سيتم التحويل)';
+    }
+  }
+});
+
+// ============ Payment Success ============
+function showPaymentSuccess(data, amount, currency){
+  const symbols = { USD:'$', EUR:'€', SDG:'ج.س', USDT:'₮', EGP:'ج.م' };
+  document.getElementById('succAmount').textContent = `${amount.toLocaleString()} ${symbols[currency] || currency}`;
+  document.getElementById('succTo').textContent = data.recipient?.name || '—';
+  document.getElementById('succRef').textContent = data.reference || '—';
+  document.getElementById('succDate').textContent = new Date(data.date).toLocaleString('ar-EG');
+  document.getElementById('paymentSuccess').classList.add('show');
+}
+function closePaymentSuccess(){
+  document.getElementById('paymentSuccess').classList.remove('show');
+}
+
+// ============ Services ============
+async function handleInterbankTransfer(){
+  const toIBAN = document.getElementById('interbankToIBAN').value.trim();
+  const amount = document.getElementById('interbankAmount').value;
+  if (!toIBAN || !amount) { toast('املأ الحقول'); return; }
+  showLoading(true);
+  try {
+    const data = await api('/interbank/transfer', { method: 'POST', body: JSON.stringify({ toIBAN, amount: parseFloat(amount) }) });
+    toast(`✅ تم التحويل — ${data.reference}`);
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function handleMobileTopUp(){
+  const network = document.getElementById('topupNetwork').value;
+  const phone = document.getElementById('topupPhone').value.trim();
+  const amount = document.getElementById('topupAmount').value;
+  if (!phone || !amount) { toast('املأ الحقول'); return; }
+  showLoading(true);
+  try {
+    await api('/topup/mobile', { method: 'POST', body: JSON.stringify({ network, phone, amount: parseFloat(amount) }) });
+    toast('✅ تم الشحن');
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function inquireBill(){
+  const billNumber = document.getElementById('billNumber').value.trim();
+  if (!billNumber) { toast('أدخل رقم الفاتورة'); return; }
+  showLoading(true);
+  try {
+    const data = await api('/government/inquire', { method: 'POST', body: JSON.stringify({ billNumber }) });
+    const info = document.getElementById('billInfo');
+    info.style.display = 'block';
+    info.innerHTML = `📋 <b>${data.serviceType}</b><br>المبلغ: <b>${data.amount?.toLocaleString()} ج.س</b><br>الاسم: ${data.payerName || '—'}<br>الاستحقاق: ${data.dueDate || '—'}`;
+    document.getElementById('billAmount').value = data.amount;
+  } catch(err){ toast('فشل الاستعلام'); }
+  finally { showLoading(false); }
+}
+async function payBill(){
+  const billNumber = document.getElementById('billNumber').value.trim();
+  const serviceType = document.getElementById('billServiceType').value;
+  const amount = parseFloat(document.getElementById('billAmount').value);
+  if (!billNumber || !amount) { toast('أدخل البيانات'); return; }
+  showLoading(true);
+  try {
+    const data = await api('/government/pay', { method: 'POST', body: JSON.stringify({ billNumber, serviceType, amount }) });
+    toast(`✅ تم السداد — ${data.receipt}`);
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function handleCashyTransfer(){
+  const type = document.getElementById('cashyType').value;
+  const phone = document.getElementById('cashyPhone').value.trim();
+  const amount = parseFloat(document.getElementById('cashyAmount').value);
+  if (!phone || !amount) { toast('املأ الحقول'); return; }
+  showLoading(true);
+  try {
+    await api('/cashy/transfer', { method: 'POST', body: JSON.stringify({ type, phone, amount }) });
+    toast('✅ تم التحويل');
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function handlePaymobTransfer(){
+  const walletType = document.getElementById('paymobWallet').value;
+  const phone = document.getElementById('paymobPhone').value.trim();
+  const amount = parseFloat(document.getElementById('paymobAmount').value);
+  if (!phone || !amount) { toast('املأ الحقول'); return; }
+  showLoading(true);
+  try {
+    await api('/paymob/payout', { method: 'POST', body: JSON.stringify({ walletType, phone, amount }) });
+    toast('✅ تم التحويل');
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function handleBinance(){
+  const mode = document.getElementById('binanceMode').value;
+  const target = document.getElementById('binanceTarget').value.trim();
+  const amount = parseFloat(document.getElementById('binanceAmount').value);
+  const currency = document.getElementById('binanceCurrency').value;
+  showLoading(true);
+  try {
+    if (mode === 'transfer') {
+      const data = await api('/binance/transfer', { method: 'POST', body: JSON.stringify({ payId: target, amount, currency }) });
+      toast('✅ تم التحويل — ' + (data.txId || 'OK'));
+    } else {
+      const data = await api('/binance/create-order', { method: 'POST', body: JSON.stringify({ amount, currency }) });
+      toast('📥 تم إنشاء الطلب (تجريبي)');
+    }
+    closeSub(); await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function buyCard(provider, name, price){
+  if (!confirm(`شراء ${name} بسعر ${price.toLocaleString()} ج.س؟ (تجريبي)`)) return;
+  showLoading(true);
+  try {
+    const data = await api('/digital/purchase', { method: 'POST', body: JSON.stringify({ productId: provider, productName: name, price }) });
+    toast(`✅ تم الشراء — الرمز: ${data.code}`);
+    await Promise.all([loadBalances(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function activateSub(service){
+  const email = prompt(`أدخل البريد لتفعيل ${service}:`);
+  if (!email) return;
+  showLoading(true);
+  try {
+    await api('/subscription/activate', { method: 'POST', body: JSON.stringify({ service, email, plan: 'pro' }) });
+    toast(`✅ تم تفعيل ${service}`);
+    await loadTransactions();
+  } catch(err){ toast('فشل التفعيل'); }
+  finally { showLoading(false); }
+}
+async function linkEarnings(platform){
+  const account = document.getElementById(platform + 'Account').value.trim();
+  if (!account) { toast('أدخل البريد'); return; }
+  showLoading(true);
+  try {
+    const data = await api('/earnings/' + platform);
+    document.getElementById(platform + 'Earnings').innerHTML = `
+      <div style="background:rgba(16,185,129,.1);padding:14px;border-radius:12px">
+        <b>✅ الحساب مربوط (تجريبي)</b><br>
+        الرصيد: <b>$${data.earnings}</b><br>
+        المعلق: <b>$${data.pending}</b>
+      </div>`;
+    toast('✅ تم الربط');
+  } catch(err){ toast('فشل الربط'); }
+  finally { showLoading(false); }
+}
+
+// ============ Cards ============
+async function loadCards(){
+  try {
+    const cards = await api('/wallester/cards');
+    const c = document.getElementById('cardsContainer');
+    if(!cards.length){
+      c.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا توجد بطاقات</p>';
+      return;
+    }
+    c.innerHTML = cards.map(card => {
+      const isMC = card.network === 'MASTERCARD';
+      const bg = isMC ? 'linear-gradient(135deg,#1a1a1a,#3d1f1f 50%,#eb001b)' : 'linear-gradient(135deg,#1a1a2e,#16213e 50%,#0f3460)';
+      return `
+      <div class="visa-card" style="background:${bg}">
+        <div class="vc-top"><div class="vc-chip"></div><div class="vc-network">${isMC ? 'Mastercard' : 'VISA'}</div></div>
+        <div class="vc-number" id="cardNum_${card.id}">•••• •••• •••• ${card.card_number_last4}</div>
+        <div class="vc-bottom">
+          <div class="vc-block"><small>Card Holder</small><strong>${card.card_holder}</strong></div>
+          <div class="vc-block"><small>Expires</small><strong>${card.expiry_date}</strong></div>
+        </div>
+        <div class="vc-cvv"><small>CVV</small><strong id="cardCvv_${card.id}">•••</strong></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <button class="btn-primary" style="margin:0" onclick="revealCard(${card.id})">إظهار</button>
+        <button class="btn-primary" style="margin:0;background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="freezeCard(${card.id})">${card.status === 'frozen' ? 'تفعيل' : 'تجميد'}</button>
+      </div>`;
+    }).join('');
+  } catch(err){ console.error(err); }
+}
+async function issueCard(scheme){
+  showLoading(true);
+  try {
+    await api('/wallester/issue-card', { method: 'POST', body: JSON.stringify({ scheme, currency: 'EUR', limit: 5000 }) });
+    toast(`✅ تم إصدار بطاقة ${scheme === 'mastercard' ? 'Mastercard' : 'Visa'} تجريبية`);
+    await Promise.all([loadCards(), loadTransactions()]);
+  } catch(err){ toast(err.message === 'NETWORK' ? '❌ تعذر الاتصال' : err.message); }
+  finally { showLoading(false); }
+}
+async function revealCard(id){
+  try {
+    const data = await api(`/wallester/cards/${id}/reveal`);
+    document.getElementById(`cardNum_${id}`).textContent = data.pan.replace(/(.{4})/g, '$1 ').trim();
+    document.getElementById(`cardCvv_${id}`).textContent = data.cvv;
+    toast('تم الإظهار');
+  } catch(err){ toast('فشل'); }
+}
+async function freezeCard(id){
+  try { await api(`/wallester/cards/${id}/freeze`, { method: 'PATCH' }); toast('تم'); await loadCards(); }
+  catch(err){ toast('فشل'); }
+}
+
+// ============ Init ============
+document.addEventListener('DOMContentLoaded', () => {
+  const savedToken = store.get('demo_token');
+  if (savedToken) {
+    authToken = savedToken;
+    const savedUser = store.get('demo_user');
+    if (savedUser) {
+      currentUser = savedUser;
+      enterApp();
+      return;
+    }
+  }
+  setTimeout(() => showScreen('welcomeScreen'), 300);
+});
+</script>
+</body>
+</html>
